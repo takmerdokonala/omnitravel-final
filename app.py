@@ -1,167 +1,110 @@
 import streamlit as st
 import base64
 from groq import Groq
-from tavily import TavilyClient
-from streamlit_js_eval import streamlit_js_eval, get_geolocation
 
-# --- BEZPEČNÁ KONFIGURÁCIA (Secrets) ---
-try:
-    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-    TAVILY_API_KEY = st.secrets["TAVILY_API_KEY"]
-except KeyError:
-    st.error("Chýbajú API kľúče v Secrets! Aplikácia nemôže fungovať.")
-    st.stop()
+# --- KONFIGURÁCIA STRÁNKY ---
+st.set_page_config(page_title="OmniTravel Ultra", layout="wide", initial_sidebar_state="expanded")
 
-client = Groq(api_key=GROQ_API_KEY)
-tavily = TavilyClient(api_key=TAVILY_API_KEY)
-
-# --- FIALOVÝGlassmorphism DIZAJN (CSS) ---
-FIALOVA = "#9333ea" # Krásna neónová fialová
-POZADIE = "#110022" # Temná fialová (temné pozadie)
-
-st.set_page_config(page_title="OmniTravel Pro", page_icon="📍", layout="wide")
-
-st.markdown(f"""
-    <style>
-    /* Základné nastavenia */
-    .stApp {{ background: {POZADIE}; color: white; }}
-    .stApp > header {{ background: transparent; }}
+# --- MAGICKÉ POZADIE (ČIERNE S FIALOVÝMI TVARMI) ---
+st.markdown("""
+<style>
+    /* Hlavné pozadie */
+    .stApp {
+        background: black;
+    }
     
-    /* Nadpisy a text */
-    h1, h2, h3, p {{ color: white !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }}
-    .pro-title {{ color: {FIALOVA}; font-weight: bold; font-size: 2em; }}
+    /* Animované tvary na pozadí */
+    @keyframes move {
+        from { transform: translateY(0px) translateX(0px) rotate(0deg); }
+        to { transform: translateY(-1000px) translateX(100px) rotate(360deg); }
+    }
     
-    /* Tlačidlá a Vstupy */
-    .stButton > button {{ 
-        background-color: {FIALOVA} !important; border-radius: 20px; border: none; 
-        color: white !important; padding: 10px 20px; transition: 0.3s;
-    }}
-    .stButton > button:hover {{ background-color: white !important; color: {FIALOVA} !important; }}
-    .stTextInput > div > div > input {{ background-color: rgba(255,255,255,0.05) !important; color: white !important; border: 1px solid {FIALOVA} !important; border-radius: 10px; }}
+    .shape {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background: rgba(138, 43, 226, 0.4);
+        border-radius: 50%;
+        z-index: -1;
+        animation: move 20s linear infinite;
+    }
 
-    /* Karta výsledkov */
-    .result-card {{ 
-        background: rgba(255, 255, 255, 0.05); padding: 25px; 
-        border-radius: 20px; border-left: 6px solid {FIALOVA}; 
-        box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
-    }}
-    
-    /* Pro zámok (Zlaté tlačidlo) */
-    .pro-lock {{ background: linear-gradient(45deg, #FFD700, #FFA500) !important; color: black !important; font-weight: bold; }}
-    </style>
-    """, unsafe_allow_html=True)
+    /* Štýl pre výsledky a karty */
+    .result-card {
+        background: rgba(30, 30, 30, 0.8);
+        border: 1px solid #8A2BE2;
+        padding: 20px;
+        border-radius: 15px;
+        color: white;
+        margin: 10px 0;
+    }
 
-# Logo a Názov
-st.image("image_0.png", width=120) # Tu bude tvoje logo
-st.markdown('<div class="pro-title">OmniTravel AI <span style="font-size: 0.5em; color: #aaa;">PRO</span></div>', unsafe_allow_html=True)
+    /* Štýl pre tlačidlá prihlásenia */
+    .login-btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        text-align: center;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .google-btn { background: #fff; color: #000; }
+    .apple-btn { background: #333; color: #fff; }
+</style>
 
-# Bočný panel - Nastavenia
+<div class="shape" style="left: 10%; bottom: 0; animation-duration: 25s;"></div>
+<div class="shape" style="left: 30%; bottom: 0; animation-duration: 18s; width: 15px; background: #9400D3;"></div>
+<div class="shape" style="left: 60%; bottom: 0; animation-duration: 30s;"></div>
+<div class="shape" style="left: 85%; bottom: 0; animation-duration: 22s; height: 12px;"></div>
+""", unsafe_allow_html=True)
+
+# --- BOČNÉ MENU (SIDEBAR) ---
 with st.sidebar:
-    st.subheader("🔑 Profil a Platba")
-    user_pro = st.toggle("Aktivovať Pro verziu (Test)", value=False)
+    st.image("https://img.icons8.com/fluency/96/000000/globe-earth.png", width=80) # Alebo tvoje fialové logo
+    st.title("OmniTravel Pro")
     
-    if user_pro:
-        st.success("Máš aktivovanú Pro verziu! 💎")
-    else:
-        st.warning("Používaš Free verziu.")
-        if st.button("🔥 Prejsť na PRO", help="Odomkni Audio a Offline"):
-            st.toast("Presmerovávam na platobnú bránu (Test)...")
+    st.markdown("---")
+    # ROZBAĽOVACIE MENU (Navigácia)
+    stranka = st.selectbox(
+        "Kam sa chystáš?",
+        ["🗺️ Pamiatky a Okolie", "📸 OmniVision Skener", "👤 Môj Profil", "💎 Nastavenia Pro"]
+    )
+    
+    st.markdown("---")
+    st.subheader("Prihlásenie")
+    st.markdown('<a href="#" class="login-btn google-btn">Sign in with Google</a>', unsafe_allow_html=True)
+    st.markdown('<a href="#" class="login-btn apple-btn">Sign in with Apple</a>', unsafe_allow_html=True)
+    email = st.text_input("E-mail")
+    if st.button("Prihlásiť e-mailom"):
+        st.success("Overovací link odoslaný!")
 
-# --- FUNKCIE APPKY ---
+    st.markdown("---")
+    st.subheader("Zdieľaj appku")
+    col1, col2, col3 = st.columns(3)
+    with col1: st.button("📸 IG")
+    with col2: st.button("🐦 X")
+    with col3: st.button("📘 FB")
 
-tab1, tab2, tab3 = st.tabs(["🗺️ Pamiatky", "📸 Skener Menu", "💎 Pro Funkcie"])
+# --- HLAVNÝ OBSAH PODĽA VÝBERU ---
 
-# --- TAB 1: PAMIATKY & GPS ---
-with tab1:
-    st.subheader("Zisti, čo je v okolí")
-    
-    # 📍 GPS POLOHA (Pomocou streamlit_js_eval)
-    gps_check = st.checkbox("Použiť moju polohu (📍 GPS)")
-    loc = None
-    if gps_check:
-        with st.spinner("Získavam polohu z GPS..."):
-            loc = get_geolocation()
-            if loc:
-                lat = loc['coords']['latitude']
-                lon = loc['coords']['longitude']
-                st.write(f"Získaná poloha: {lat:.4f}, {lon:.4f}")
-                # AI search na základe GPS
-                query = f"top sights near latitude {lat} longitude {lon} 2026 prices"
-            else:
-                st.error("Nepodarilo sa získať polohu. Skontroluj povolenia prehliadača.")
-                gps_check = False # Reset checku
-    
-    mesto = st.text_input("Zadaj mesto (ak nemáš GPS):", "Nové Zámky", disabled=gps_check)
-    
-    if not gps_check and not mesto:
-        st.stop()
-    
-    # AI Vyhľadávanie
-    if st.button("Hľadať info na webe"):
-        with st.spinner("Hľadám..."):
-            res = tavily.search(query=query if gps_check else f"top sights in {mesto} 2026 prices")
-            st.info("AI vygeneruje podrobný prehľad...")
-            st.markdown(f'<div class="result-card">{res}</div>', unsafe_allow_html=True)
+if stranka == "🗺️ Pamiatky a Okolie":
+    st.title("🗺️ Čo je v okolí?")
+    # Tu nechaj svoj kód pre GPS a Tavily (Tab 1)
+    st.info("Klikni na tlačidlo v tvojom pôvodnom kóde pre hľadanie pamiatok.")
 
-# --- TAB 2: SKENER MENU (SMART VISION) ---
-with tab2:
-    st.subheader("📸 OmniVision: Inteligentný skener")
-    
-    zdroj_foto = st.radio("Zdroj:", ("Fotoaparát", "Galéria"), horizontal=True)
-    image_to_process = st.camera_input("Odfoť") if zdroj_foto == "Fotoaparát" else st.file_uploader("Nahraj")
+elif stranka == "📸 OmniVision Skener":
+    st.title("📸 OmniVision Skener")
+    # Tu vlož ten náš "nezničiteľný" kód pre analýzu fotiek (Tab 2)
+    st.write("Nahraj fotku menu a AI ju spracuje.")
 
-    if image_to_process:
-        with st.spinner("Hľadám voľný AI model..."):
-            base64_image = base64.b64encode(image_to_process.getvalue()).decode('utf-8')
-            
-            # ZOZNAM MODELOV, KTORÉ SKÚSIME (Od najlepšieho po najdostupnejší)
-            zoznam_modelov = [
-                "llama-3.2-90b-vision",
-                "llama-3.2-11b-vision",
-                "llama-3.2-90b-vision-preview",
-                "llama-3.2-11b-vision-preview"
-            ]
-            
-            uspech = False
-            for model_name in zoznam_modelov:
-                try:
-                    response = client.chat.completions.create(
-                        model=model_name,
-                        messages=[{
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": "Analyzuj toto menu, prelož ho a vypíš ceny."},
-                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-                            ]
-                        }],
-                        max_tokens=500
-                    )
-                    st.markdown(f'<div class="result-card"><h3>✅ Model: {model_name}</h3>{response.choices[0].message.content}</div>', unsafe_allow_html=True)
-                    uspech = True
-                    break # Našli sme funkčný model, končíme hľadanie
-                except Exception:
-                    continue # Tento nešiel, skúšame ďalší v poradí
-            
-            if not uspech:
-                st.error("⚠️ Momentálne sú všetky Vision modely na Groqu preťažené alebo nedostupné.")
-                st.info("Tip: Skús to o 5 minút alebo skontroluj svoj limit na console.groq.com.")
+elif stranka == "👤 Môj Profil":
+    st.title("👤 Tvoj Profil")
+    st.write("Tu uvidíš históriu svojich ciest a naskenovaných menu.")
+    st.progress(45, text="Vernostné body: 450/1000")
 
-# --- TAB 3: PRO FUNKCIE ---
-with tab3:
-    st.subheader("💎 Exkluzívne Pro funkcie")
-    
-    # AUDIO SPRIEVODCA (Odomknutý len v Pro verzii)
-    st.write("📖 Audio Sprievodca pre pamiatky")
-    if user_pro:
-        # Použijeme gTTS pre hlas
-        st.info("Tu si vypočuješ Audio")
-    else:
-        st.button("🔒 Audio Sprievodca (Len PRO)", key="audio_lock")
-    
-    st.write("---")
-    
-    st.write("☁️ Offline prístup (Uloženie skenov)")
-    if user_pro:
-        st.info("Skeny sú uložené offline")
-    else:
-        st.button("🔒 Offline Ukladanie (Len PRO)", key="offline_lock")
+elif stranka == "💎 Nastavenia Pro":
+    st.title("💎 OmniTravel Pro")
+    st.checkbox("Aktivovať prémiové mapy")
+    st.checkbox("Offline režim")
