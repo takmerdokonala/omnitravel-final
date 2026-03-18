@@ -103,16 +103,41 @@ with tab1:
             st.info("AI vygeneruje podrobný prehľad...")
             st.markdown(f'<div class="result-card">{res}</div>', unsafe_allow_html=True)
 
-# --- TAB 2: SKENER MENU ---
+# --- TAB 2: SKENER MENU (AI VISION) ---
 with tab2:
-    st.subheader("Odfoť menu")
+    st.subheader("📸 Inteligentný skener menu")
+    st.write("Odfoť jedálny lístok a AI ti ho preloží a analyzuje.")
     
-    foto = st.camera_input("Odfoť menu", key="camera")
+    foto = st.camera_input("Odfoť menu", key="camera_pro")
+    
     if foto:
-        with st.spinner("AI analyzuje fotku (Vision)..."):
-            # (Tu bude Vision AI – zatiaľ len test)
-            st.success("Foto prijaté! (Tu bude AI analýza cien a alergénov)")
-
+        with st.spinner("AI číta menu..."):
+            # 1. Príprava obrázka pre AI
+            bytes_data = foto.getvalue()
+            base64_image = base64.b64encode(bytes_data).decode('utf-8')
+            
+            # 2. Volanie Vision Modelu (Llama 3.2 Vision)
+            try:
+                response = client.chat.completions.create(
+                    model="llama-3.2-11b-vision-preview",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": "Analyzuj toto menu. Prelož názvy jedál do slovenčiny, vypíš ceny a upozorni na zaujímavé jedlá alebo alergény. Formátuj to prehľadne."},
+                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                            ]
+                        }
+                    ],
+                    temperature=0.5,
+                    max_tokens=1024
+                )
+                
+                # 3. Zobrazenie výsledku v peknom fialovom boxe
+                st.markdown(f'<div class="result-card"><h3>📝 Rozbor menu:</h3>{response.choices[0].message.content}</div>', unsafe_allow_html=True)
+                
+            except Exception as e:
+                st.error(f"Chyba pri analýze: {e}")
 # --- TAB 3: PRO FUNKCIE (Hlas & Offline) ---
 with tab3:
     st.subheader("💎 Exkluzívne Pro funkcie")
