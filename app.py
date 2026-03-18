@@ -103,73 +103,48 @@ with tab1:
             st.info("AI vygeneruje podrobný prehľad...")
             st.markdown(f'<div class="result-card">{res}</div>', unsafe_allow_html=True)
 
-# --- TAB 2: SKENER MENU (AI VISION) ---
+# --- TAB 2: SKENER MENU (SMART VISION) ---
 with tab2:
-    st.subheader("📸 Inteligentný skener menu OmniVision")
-    st.write("Analyzuj jedálny lístok naživo alebo z uloženej fotky.")
+    st.subheader("📸 OmniVision: Inteligentný skener")
     
-    # Výber zdroja
-    zdroj_foto = st.radio(
-        "Vyber zdroj obrázka:",
-        ("Nová fotka (Fotoaparát)", "Nahrať z galérie (Uložená fotka)"),
-        horizontal=True
-    )
-    
-    image_to_process = None
-    
-    if zdroj_foto == "Nová fotka (Fotoaparát)":
-        foto_live = st.camera_input("Odfoť menu", key="camera_pro")
-        if foto_live:
-            image_to_process = foto_live
-    else:
-        foto_upload = st.file_uploader("Vyber fotku z galérie", type=["jpg", "jpeg", "png"], key="gallery_pro")
-        if foto_upload:
-            image_to_process = foto_upload
-            st.image(image_to_process, caption="Nahrátý obrázok", width=300)
+    zdroj_foto = st.radio("Zdroj:", ("Fotoaparát", "Galéria"), horizontal=True)
+    image_to_process = st.camera_input("Odfoť") if zdroj_foto == "Fotoaparát" else st.file_uploader("Nahraj")
 
     if image_to_process:
-        with st.spinner("OmniVision sa pripája k AI..."):
-            try:
-                # Príprava obrázka
-                bytes_data = image_to_process.getvalue()
-                base64_image = base64.b64encode(bytes_data).decode('utf-8')
-                
-                # --- TU JE TA ZMENA: NAJSKÔR SKÚSIME STABILNÝ MODEL ---
-                # Ak Groq vypne jeden, skúsime druhý
+        with st.spinner("Hľadám voľný AI model..."):
+            base64_image = base64.b64encode(image_to_process.getvalue()).decode('utf-8')
+            
+            # ZOZNAM MODELOV, KTORÉ SKÚSIME (Od najlepšieho po najdostupnejší)
+            zoznam_modelov = [
+                "llama-3.2-90b-vision",
+                "llama-3.2-11b-vision",
+                "llama-3.2-90b-vision-preview",
+                "llama-3.2-11b-vision-preview"
+            ]
+            
+            uspech = False
+            for model_name in zoznam_modelov:
                 try:
-                    target_model = "llama-3.2-11b-vision-preview"
                     response = client.chat.completions.create(
-                        model=target_model,
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": "Analyzuj toto menu. Prelož jedlá do slovenčiny, vypíš ceny a upozorni na alergény."},
-                                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-                                ]
-                            }
-                        ],
-                        max_tokens=1024
+                        model=model_name,
+                        messages=[{
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": "Analyzuj toto menu, prelož ho a vypíš ceny."},
+                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                            ]
+                        }],
+                        max_tokens=500
                     )
+                    st.markdown(f'<div class="result-card"><h3>✅ Model: {model_name}</h3>{response.choices[0].message.content}</div>', unsafe_allow_html=True)
+                    uspech = True
+                    break # Našli sme funkčný model, končíme hľadanie
                 except Exception:
-                    # ZÁLOŽNÝ MODEL (ak prvý zlyhá)
-                    target_model = "llama-3.2-90b-vision-preview"
-                    response = client.chat.completions.create(
-                        model=target_model,
-                        messages=[
-                            {"role": "user", "content": [{"type": "text", "text": "Prelož toto menu do slovenčiny a vypíš ceny."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}]}
-                        ]
-                    )
-
- # 3. Zobrazenie výsledku
-                st.markdown(
-                    f'<div class="result-card"><h3>📝 Rozbor menu OmniVision:</h3>{response.choices[0].message.content}</div>',
-                    unsafe_allow_html=True
-                )
-                
-            except Exception as e:
-                st.error(f"Chyba pri analýze: {e}")
-    # Tu končí Tab 2 (nezabudni na odsadenie!)
+                    continue # Tento nešiel, skúšame ďalší v poradí
+            
+            if not uspech:
+                st.error("⚠️ Momentálne sú všetky Vision modely na Groqu preťažené alebo nedostupné.")
+                st.info("Tip: Skús to o 5 minút alebo skontroluj svoj limit na console.groq.com.")
 
 # --- TAB 3: PRO FUNKCIE ---
 with tab3:
