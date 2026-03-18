@@ -9,104 +9,96 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. PAMÄŤ PRE NAVIGÁCIU A JAZYK ---
+# --- 2. PAMÄŤ PRE STAV ---
 if 'page' not in st.session_state: st.session_state.page = "DOMOVSKÁ STRÁNKA"
 if 'lang' not in st.session_state: st.session_state.lang = "Slovenčina"
 
 # =========================================================================
-# ⚪️ ELEGANTNÝ GLOBÁLNY DIZAJN (CSS)
+# ⚪️ CSS OPRAVA PRE FUNKČNOSŤ KLIKANIA
 # =========================================================================
-STYLE = """
+st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
     .stApp { background-color: #FFFFFF !important; font-family: 'Inter', sans-serif !important; }
-    [data-testid="stHeader"] { background-color: white !important; }
-    .block-container { padding: 0rem !important; }
 
     /* SIDEBAR */
     [data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
         border-right: 1px solid #E0E0E0;
-        width: 320px !important;
     }
     [data-testid="stSidebarUserContent"] { padding: 0rem !important; }
 
-    /* HORNÁ AUTH SEKCIA (Login/Register) */
+    /* LOGIN / REGISTER PANEL */
     .nav-top-auth {
-        display: flex; background-color: #333333; color: white; text-align: center;
+        display: flex; 
+        background-color: #333333; 
+        color: white; 
+        text-align: center;
+        width: 100%;
     }
     .nav-auth-item {
-        flex: 1; padding: 18px 0; font-size: 0.85rem; font-weight: 500;
-        border-right: 1px solid #444444; letter-spacing: 1px;
-    }
-
-    /* JAZYKOVÁ SEKCIA - ŠTÝLOVANIE SELECTBOXU */
-    .lang-label {
-        padding: 10px 20px 0px 20px;
-        font-size: 0.75rem;
-        color: #999;
-        text-transform: uppercase;
+        flex: 1; 
+        padding: 18px 0; 
+        font-size: 0.8rem; 
+        font-weight: 600;
+        border-right: 1px solid #444;
         letter-spacing: 1px;
     }
-    
-    /* Úprava Streamlit selectboxu aby sedel do menu */
-    div[data-testid="stSelectbox"] {
-        padding: 0 15px 10px 15px !important;
+
+    /* ÚPRAVA JAZYKOVÉHO POLA */
+    .lang-container {
+        background-color: #F9F9F9;
+        padding: 10px 20px 5px 20px;
+        border-bottom: 1px solid #EEE;
+    }
+    .lang-text {
+        font-size: 0.7rem;
+        color: #999;
+        margin-bottom: 5px;
+        text-transform: uppercase;
     }
 
-    /* ŠTÝLOVANIE TLAČIDIEL MENU */
+    /* ŠTÝLOVANIE MENU TLAČIDIEL */
     div.stButton > button {
         width: 100% !important;
         border: none !important;
         border-bottom: 1px solid #F5F5F5 !important;
         background-color: transparent !important;
-        color: #000000 !important;
+        color: #000 !important;
         padding: 22px 20px !important;
         text-align: left !important;
         font-size: 0.95rem !important;
         border-radius: 0px !important;
-        font-weight: 400 !important;
     }
-    
-    div.stButton > button:hover {
-        background-color: #FBFBFB !important;
-    }
+    div.stButton > button:hover { background-color: #FBFBFB !important; }
 
-    /* Nadpisy */
-    h1 { color: #000000 !important; font-weight: 300 !important; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
 </style>
-"""
-
-st.markdown(STYLE, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # =========================================================================
-# 📱 BOČNÉ MENU (SIDEBAR)
+# 📱 SIDEBAR - JEDNODUCHÝ A FUNKČNÝ
 # =========================================================================
 with st.sidebar:
-    # 1. Login / Register
+    # 1. Login a Register (Vizuálne)
     st.markdown('<div class="nav-top-auth"><div class="nav-auth-item">LOGIN</div><div class="nav-auth-item" style="border-right:none;">REGISTER</div></div>', unsafe_allow_html=True)
 
-    # 2. Výber jazyka (Všetky jazyky sveta)
-    st.markdown('<div class="lang-label">Vyberte jazyk / Select Language</div>', unsafe_allow_html=True)
+    # 2. Jazyky (Funkčné Streamlit pole)
+    st.markdown('<div class="lang-container"><div class="lang-text">Jazyk / Language</div></div>', unsafe_allow_html=True)
     
-    # Tu môžeš doplniť akékoľvek ďalšie jazyky
-    seznam_jazykov = [
-        "Slovenčina", "Čeština", "English", "Deutsch", "Français", 
-        "Español", "Italiano", "Polski", "Magyar", "Tiếng Việt", "日本語"
-    ]
+    # Tento komponent je teraz "čistý" a prístupný pre kliknutie
+    seznam_jazykov = ["Slovenčina", "Čeština", "English", "Deutsch", "Français", "Español", "Italiano"]
     
-    selected_lang = st.selectbox(
-        "Language",
-        seznam_jazykov,
+    st.session_state.lang = st.selectbox(
+        "Zmeň jazyk",
+        options=seznam_jazykov,
         index=seznam_jazykov.index(st.session_state.lang),
         label_visibility="collapsed"
     )
-    st.session_state.lang = selected_lang
 
-    # 3. Navigačné menu (Stabilné tlačidlá)
-    st.write("---") # Jemná deliaca čiara
-    
+    st.write("") # Medzera
+
+    # 3. Navigačné menu
     if st.button("DOMOVSKÁ STRÁNKA"): st.session_state.page = "DOMOVSKÁ STRÁNKA"
     if st.button("MÔJ PROFIL"): st.session_state.page = "MÔJ PROFIL"
     if st.button("AI MENU"): st.session_state.page = "AI MENU"
@@ -114,19 +106,8 @@ with st.sidebar:
     if st.button("MAPA OKOLIA"): st.session_state.page = "MAPA OKOLIA"
     if st.button("KOMUNITA"): st.session_state.page = "KOMUNITA"
 
-    st.markdown(f'<div style="padding: 40px 20px; color: #BBB; font-size: 0.7rem; text-align: center; letter-spacing: 2px;">OMNITRAVEL v1.0 | {st.session_state.lang.upper()}</div>', unsafe_allow_html=True)
-
 # =========================================================================
-# 🖼️ OBSAH STRÁNKY
+# 🖼️ ZOBRAZENIE OBSAHU
 # =========================================================================
-page = st.session_state.page
-
-if page == "DOMOVSKÁ STRÁNKA" or page == "KOMUNITA":
-    if os.path.exists("header.png"):
-        with open("header.png", "rb") as f:
-            data = base64.b64encode(f.read()).decode()
-        st.markdown(f'<div style="width:100%; line-height:0;"><img src="data:image/png;base64,{data}" style="width:100%;"></div>', unsafe_allow_html=True)
-
-st.markdown(f'<h1 style="margin-top: 50px;">{page}</h1>', unsafe_allow_html=True)
-
-st.write(f"Zvolený jazyk rozhrania: **{st.session_state.lang}**")
+st.markdown(f'<h1 style="text-align:center; margin-top:50px; font-weight:300;">{st.session_state.page}</h1>', unsafe_allow_html=True)
+st.info(f"Aktuálny jazyk aplikácie: {st.session_state.lang}")
