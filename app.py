@@ -1,19 +1,20 @@
 import streamlit as st
 
-# --- 1. KONFIGURÁCIA ---
+# --- 1. KONFIGURÁCIA STRÁNKY ---
 st.set_page_config(page_title="OmniTravel", layout="wide", initial_sidebar_state="collapsed")
 
-# --- 2. CSS DIZAJN (Presná kópia z 1000116064.jpg) ---
+# --- 2. CSS DIZAJN (Presne podľa predlohy 1000116064.jpg) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap');
     
+    /* Biele čisté pozadie */
     html, body, [class*="css"] { 
         font-family: 'Plus Jakarta Sans', sans-serif !important; 
         background-color: #FFFFFF !important;
     }
 
-    /* Vycentrovanie celého obsahu na stred */
+    /* Vycentrovanie celého obsahu na stred obrazovky */
     .main-container {
         display: flex;
         flex-direction: column;
@@ -24,7 +25,7 @@ st.markdown("""
         width: 100%;
     }
 
-    /* Štýl nápisu OMNITRAVEL */
+    /* Štýl nápisu OMNITRAVEL - hrubý a tmavý */
     .brand-title {
         font-weight: 700;
         font-size: 2.8rem;
@@ -34,14 +35,14 @@ st.markdown("""
         letter-spacing: -1px;
     }
 
-    /* Sivý podnadpis */
+    /* Sivý podnadpis pod názvom */
     .brand-subtitle {
         color: #94A3B8;
         font-size: 1.1rem;
         margin-bottom: 50px;
     }
 
-    /* Fialové pilulkové tlačidlá */
+    /* Fialové pilulkové tlačidlá s gradientom */
     div.stButton > button {
         width: 320px !important;
         background: linear-gradient(90deg, #9491FF 0%, #7366FF 100%) !important;
@@ -63,33 +64,37 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* Odstránenie Streamlit lišty hore */
+    /* Odstránenie horného panelu Streamlit pre čistý vzhľad */
     [data-testid="stHeader"] { background: rgba(0,0,0,0); }
+    [data-testid="stToolbar"] { display: none; }
 </style>
 """, unsafe_allow_html=True)
 
 # --- 3. OBSAH (Logo, Text a Tlačidlá) ---
 st.markdown('<div class="main-container">', unsafe_allow_html=True)
 
-# LOGO (Modrá hviezda v kruhu - presne podľa 1000116064.jpg)
+# LOGO (Modrá hviezda v dvojitom kruhu - presné SVG)
 st.markdown("""
-    <svg width="130" height="130" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 10px;">
+    <svg width="140" height="140" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 10px;">
         <circle cx="50" cy="50" r="48" stroke="#1E293B" stroke-width="1.5"/>
         <circle cx="50" cy="50" r="43" stroke="#1E293B" stroke-width="1"/>
-        <path d="M50 20L56 44L80 50L56 56L50 80L44 56L20 50L44 44L50 20Z" fill="#5F52FF"/>
-        <circle cx="50" cy="50" r="5" fill="#1E293B"/>
-        <circle cx="50" cy="50" r="2" fill="white"/>
+        
+        <path d="M50 18L57 43L82 50L57 57L50 82L43 57L18 50L43 43L50 18Z" fill="#5F52FF"/>
+        
+        <circle cx="50" cy="50" r="6" fill="#1E293B"/>
+        <circle cx="50" cy="50" r="2.5" fill="white"/>
     </svg>
 """, unsafe_allow_html=True)
 
+# Názov a podnadpis vycentrovaný pod logom
 st.markdown('<h1 class="brand-title">OMNITRAVEL</h1>', unsafe_allow_html=True)
 st.markdown('<p class="brand-subtitle">Zaregistrujte sa a objavujte svet bez hraníc</p>', unsafe_allow_html=True)
 
-# TLAČIDLÁ (Fialové pilulky pod sebou)
+# Tlačidlá PRIHLÁSIŤ a REGISTROVAŤ pod sebou
 if st.button("PRIHLÁSIŤ"):
-    st.switch_page("pages/login.py") # Príklad navigácie
+    st.write("Navigácia na prihlásenie...")
 
 if st.button("REGISTROVAŤ"):
-    st.switch_page("pages/register.py")
+    st.write("Navigácia na registráciu...")
 
 st.markdown('</div>', unsafe_allow_html=True)
