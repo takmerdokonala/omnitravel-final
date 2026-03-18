@@ -161,9 +161,17 @@ with tab2:
                         ]
                     )
 
-                # Zobrazenie výsledku
-                st.markdown(f'<div class="result-card"><h3>📝 Rozbor menu ({target_model}):</h3>{response.choices[0].message.content}</div>', unsafe_allow_html=True)
-# --- TAB 3: PRO FUNKCIE (Hlas & Offline) ---
+ # 3. Zobrazenie výsledku
+                st.markdown(
+                    f'<div class="result-card"><h3>📝 Rozbor menu OmniVision:</h3>{response.choices[0].message.content}</div>',
+                    unsafe_allow_html=True
+                )
+                
+            except Exception as e:
+                st.error(f"Chyba pri analýze: {e}")
+    # Tu končí Tab 2 (nezabudni na odsadenie!)
+
+# --- TAB 3: PRO FUNKCIE ---
 with tab3:
     st.subheader("💎 Exkluzívne Pro funkcie")
     
