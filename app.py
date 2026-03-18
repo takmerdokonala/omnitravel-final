@@ -13,21 +13,18 @@ st.set_page_config(
 if 'step' not in st.session_state: st.session_state.step = "app"
 
 # =========================================================================
-# ⚪️ PURE MINIMALIST DESIGN (OPRAVA ZOBRAZENIA TEXTU)
+# ⚪️ FINÁLNA OPRAVA ZOBRAZENIA (BEZ EMOJI)
 # =========================================================================
 STYLE = """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
     .stApp { 
         background-color: #FFFFFF !important; 
         font-family: 'Inter', sans-serif !important; 
     }
 
-    [data-testid="stHeader"] { background-color: white !important; }
-    .block-container { padding: 0rem !important; }
-
-    /* SIDEBAR */
+    /* SIDEBAR DEFINÍCIA */
     [data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
         border-right: 1px solid #E0E0E0;
@@ -35,7 +32,7 @@ STYLE = """
     }
     [data-testid="stSidebarUserContent"] { padding-top: 0rem !important; }
 
-    /* Horná Auth sekcia */
+    /* HORNÁ ČASŤ (LOGIN/REGISTER) */
     .nav-top-auth {
         display: flex;
         background-color: #333333;
@@ -48,10 +45,9 @@ STYLE = """
         font-size: 0.85rem;
         font-weight: 500;
         border-right: 1px solid #444444;
-        letter-spacing: 1px;
     }
 
-    /* Jazykový pásik */
+    /* JAZYKY */
     .nav-lang-bar {
         display: flex;
         background-color: #F9F9F9;
@@ -63,45 +59,49 @@ STYLE = """
         text-align: center;
         font-size: 0.85rem;
         color: #999999;
-        border-right: 1px solid #EEEEEE;
     }
     .nav-lang-active { color: #000000; font-weight: 600; }
 
-    /* MENU - OPRAVA VIDITEĽNOSTI TEXTU */
+    /* --- OPRAVA MENU: ABY TEXT NEZMIZOL --- */
+    
+    /* Nastavenie riadku v menu */
     [data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label {
-        padding: 22px 25px !important;
+        padding: 15px 20px !important;
         border-bottom: 1px solid #F5F5F5 !important;
         margin: 0 !important;
         width: 100%;
-        display: flex;
-    }
-    
-    /* Úplné schovanie krúžkov a medzier po nich */
-    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label [data-testid="stWidgetLabel"],
-    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label div:first-child {
-        display: none !important;
+        display: flex !important;
+        align-items: center !important;
     }
 
-    /* VYKRESLENIE TEXTU - ČIERNA A DOSTREDU */
+    /* Schovanie krúžku tak, aby text ostal */
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label div:first-child {
+        background-color: transparent !important;
+        border: none !important;
+        width: 0px !important;
+        height: 0px !important;
+        margin-right: -15px !important;
+        visibility: hidden !important;
+    }
+
+    /* Vynútenie čiernej farby a viditeľnosti textu */
     [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {
         color: #000000 !important;
-        font-size: 1rem !important;
-        font-weight: 400 !important;
-        margin-left: 0px !important; /* Reset posunu */
+        font-size: 1.05rem !important;
+        font-weight: 500 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
         text-align: left !important;
-        width: 100%;
+        padding-left: 10px !important;
     }
 
-    /* Efekt pri vybraní (jemné zvýraznenie) */
+    /* Aktívna položka (pozadie) */
     [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[data-filled="true"] {
-        background-color: #FBFBFB !important;
+        background-color: #F0F0F0 !important;
     }
 
-    /* Obsah */
     .banner-box { width: 100%; line-height: 0; }
     .omni-banner { width: 100%; display: block; }
-    h1 { color: #000000 !important; font-weight: 300 !important; text-align: center; }
-
 </style>
 """
 
@@ -111,18 +111,18 @@ st.markdown(STYLE, unsafe_allow_html=True)
 # 📱 BOČNÉ MENU
 # =========================================================================
 with st.sidebar:
-    # 1. Login / Register
+    # 1. Login / Register (Pevné HTML)
     st.markdown('<div class="nav-top-auth"><div class="nav-auth-item">LOGIN</div><div class="nav-auth-item" style="border-right:none;">REGISTER</div></div>', unsafe_allow_html=True)
 
     # 2. Jazyky
     st.markdown('<div class="nav-lang-bar"><div class="nav-lang-item nav-lang-active">SK</div><div class="nav-lang-item" style="border-right:none;">EN</div></div>', unsafe_allow_html=True)
 
-    # 3. Zoznam stránok (ČISTÝ TEXT)
+    # 3. Samotné Menu (Texty bez emoji)
     stranka = st.radio(
-        "Navigácia",
+        "Menu",
         [
-            "Domovská stránka", 
-            "Môj Profil", 
+            "Domovska stranka", 
+            "Moj Profil", 
             "AI Menu", 
             "Scanner", 
             "Mapa okolia", 
@@ -131,18 +131,15 @@ with st.sidebar:
         label_visibility="collapsed"
     )
 
-    st.markdown('<div style="padding: 40px 20px; color: #CCC; font-size: 0.7rem; text-align: center; letter-spacing: 2px;">OMNITRAVEL v1.0</div>', unsafe_allow_html=True)
+    st.markdown('<div style="padding: 30px; color: #CCC; font-size: 0.7rem; text-align: center;">OMNITRAVEL v1.0</div>', unsafe_allow_html=True)
 
 # =========================================================================
 # 🖼️ OBSAH
 # =========================================================================
-if "Domovská" in stranka or "Komunita" in stranka:
+if "Domovska" in stranka or "Komunita" in stranka:
     if os.path.exists("header.png"):
         with open("header.png", "rb") as f:
             data = base64.b64encode(f.read()).decode()
         st.markdown(f'<div class="banner-box"><img src="data:image/png;base64,{data}" class="omni-banner"></div>', unsafe_allow_html=True)
 
-st.markdown(f'<h1 style="margin-top: 50px; text-transform: uppercase; letter-spacing: 2px;">{stranka}</h1>', unsafe_allow_html=True)
-
-if "Domovská" in stranka:
-    st.markdown('<div style="max-width: 600px; margin: 0 auto; padding: 20px; text-align: center; color: #888; font-weight: 300; line-height: 1.6;">Vitajte v minimalistickom rozhraní OmniTravel. Vaše cesty začínajú tu.</div>', unsafe_allow_html=True)
+st.markdown(f'<h1 style="text-align: center; margin-top: 50px; font-weight: 400;">{stranka.upper()}</h1>', unsafe_allow_html=True)
