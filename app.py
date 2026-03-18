@@ -1,172 +1,97 @@
 import streamlit as st
-import os
 
-# --- 1. KONFIGURÁCIA (Musí byť úplne hore!) ---
+# --- 1. KONFIGURÁCIA ---
 st.set_page_config(page_title="OmniTravel", layout="wide", initial_sidebar_state="collapsed")
 
-# --- 2. PAMÄŤ A STAV (Trvalé úložisko pre reláciu) ---
+# --- 2. PAMÄŤ ---
 if 'is_registered' not in st.session_state: st.session_state.is_registered = False
-if 'auth_mode' not in st.session_state: st.session_state.auth_mode = "register" # register / login
-if 'lang' not in st.session_state: st.session_state.lang = "Slovenčina"
-if 'page' not in st.session_state: st.session_state.page = "home"
 if 'user_data' not in st.session_state:
-    st.session_state.user_data = {"name": "", "city": "", "wheelchair": False, "email": ""}
+    st.session_state.user_data = {"name": "", "city": "", "wheelchair": False}
 
-# --- 3. SLOVNÍK PREKLADOV (Aby to fungovalo aj po slovensky) ---
-translations = {
-    "Slovenčina": {
-        "reg": "Registrácia", "log": "Prihlásenie", "submit_reg": "DOKONČIŤ REGISTRÁCIU", "submit_log": "PRIHLÁSIŤ SA",
-        "email_p": "meno@priklad.com", "pass_p": "Zadajte silné heslo",
-        "name_p": "napr. Peter", "city_p": "napr. Košice",
-        "wc": "♿ Vyžadujem bezbariérový prístup", "welcome": "Vitajte späť!", "explore": "Zaregistrujte sa a objavujte svet bez hraníc"
-    }
-}
-T = translations["Slovenčina"]
+# --- 3. LOGO (SVG GRAFIKA - Kompas z tvojho návrhu) ---
+logo_html = """
+<div style="text-align: center; margin-bottom: 20px;">
+    <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" stroke="#1E293B" stroke-width="2"/>
+        <circle cx="50" cy="50" r="40" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 2"/>
+        <path d="M50 15L58 45L50 40L42 45L50 15Z" fill="#4F46E5"/>
+        <path d="M50 85L42 55L50 60L58 55L50 85Z" fill="#94A3B8"/>
+        <circle cx="50" cy="50" r="4" fill="#1E293B"/>
+        <path d="M20 50H30M70 50H80M50 20V30M50 70V80" stroke="#1E293B" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; color: #1E293B; letter-spacing: 2px; margin-top: 10px;">
+        OMNI<span style="font-weight: 300; color: #64748B;">TRAVEL</span>
+    </h1>
+    <p style="color: #94A3B8; font-size: 0.9rem; margin-top: -10px;">Vaše dobrodružstvo začína.</p>
+</div>
+"""
 
-# --- 4. DIZAJN (CSS pre moderný a sociálny vibe) ---
+# --- 4. DIZAJN (CSS) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-    
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap');
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif !important; }
-    .stApp { background-color: #FFFFFF !important; }
+    
+    .stApp { background: white !important; }
 
-    /* Centrujúca karta pre autentifikáciu (Login/Register) */
+    /* Karta registrácie */
     .auth-card {
-        background: white;
-        padding: 50px 40px;
-        border-radius: 32px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.05);
-        border: 1px solid #F0F2F6;
-        max-width: 480px;
-        margin: auto;
+        background: #FFFFFF;
+        padding: 40px;
+        border-radius: 30px;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.06);
+        border: 1px solid #F1F5F9;
         text-align: center;
     }
 
-    /* Moderné vstupné polia (Ako iOS) */
+    /* Vstupné polia */
     div[data-baseweb="input"] {
-        border-radius: 14px !important;
-        background-color: #F4F7FB !important;
-        border: 1px solid transparent !important;
-        padding: 4px !important;
-    }
-    div[data-baseweb="input"]:focus-within {
-        border-color: #4F46E5 !important;
-        background-color: white !important;
+        border-radius: 15px !important;
+        background-color: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
     }
 
-    /* Moderné tlačidlá (Fialový gradient s tieňom) */
+    /* Tlačidlo */
     div.stButton > button {
         width: 100%;
-        background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%) !important;
+        background: #1E293B !important;
         color: white !important;
-        border: none !important;
-        padding: 14px !important;
-        border-radius: 16px !important;
+        padding: 15px !important;
+        border-radius: 15px !important;
         font-weight: 600 !important;
-        transition: 0.3s all;
-        margin-top: 10px;
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        border: none !important;
+        transition: 0.3s;
     }
-    div.stButton > button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
-
-    /* Prepínač medzi Loginom a Registráciou (Ako sociálne siete) */
-    .auth-tabs {
-        display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;
-        background: #F4F7FB; padding: 6px; border-radius: 15px;
-    }
-    .auth-tab {
-        flex: 1; padding: 10px; border-radius: 12px; font-weight: 600; color: #6B7280;
-        transition: 0.2s;
-    }
-    .auth-tab:hover { background: #E0E7FF; color: #4F46E5; }
+    div.stButton > button:hover { background: #334155 !important; transform: translateY(-2px); }
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================================================
-# 5. LOGIKA AUTENTIFIKÁCIE S LOGOM
-# =========================================================================
+# --- 5. OBSAH ---
 if not st.session_state.is_registered:
-    # --- LOGO (SVG ktoré som vytvoril) ---
-    st.markdown("<div style='height:80px'></div>", unsafe_allow_html=True)
-    logo_svg = """
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 120px; height: 120px; display: block; margin: 0 auto 30px;">
-            <defs>
-                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <circle cx="50" cy="50" r="45" stroke-width="1.5" stroke="#E5E7EB" fill="white" />
-            <circle cx="50" cy="50" r="42" stroke-width="1" stroke="#F0F2F6" fill="white" />
-            <path d="M50 15 L56 38 H80 L62 52 L68 75 L50 61 L32 75 L38 52 L20 38 H44 Z" fill="url(#grad)" />
-            <text x="50" y="93" text-anchor="middle" font-size="12" font-weight="700" fill="#111827">OMNITRAVEL</text>
-        </svg>
-    """
-    st.markdown(logo_svg, unsafe_allow_html=True)
-    
-    # --- Centrujúci stĺpec pre kartu ---
-    _, col, _ = st.columns([1, 2, 1])
+    st.markdown("<div style='height:50px'></div>", unsafe_allow_html=True)
+    _, col, _ = st.columns([1, 1.5, 1])
     
     with col:
+        # Zobrazenie LOGA
+        st.markdown(logo_html, unsafe_allow_html=True)
+        
         with st.container():
             st.markdown('<div class="auth-card">', unsafe_allow_html=True)
+            name = st.text_input("Meno", placeholder="napr. Alex")
+            email = st.text_input("E-mail", placeholder="alex@priklad.sk")
+            pwd = st.text_input("Heslo", type="password")
             
-            # --- PREPÍNAČ MODULOV (Registrácia / Prihlásenie) ---
-            st.markdown('<div class="auth-tabs">', unsafe_allow_html=True)
-            r_col, l_col = st.columns(2)
-            with r_col:
-                if st.button(T["reg"], key="reg_btn", help="Prepnúť na registráciu"):
-                    st.session_state.auth_mode = "register"
-            with l_col:
-                if st.button(T["log"], key="log_btn", help="Prepnúť na prihlásenie"):
-                    st.session_state.auth_mode = "login"
+            st.write("")
+            if st.button("ZAREGISTROVAŤ SA"):
+                if name and email and pwd:
+                    st.session_state.user_data["name"] = name
+                    st.session_state.is_registered = True
+                    st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
-
-            # --- SAMOTNÉ FORMULÁRE (Preklad pod logom) ---
-            if st.session_state.auth_mode == "register":
-                st.markdown(f"<p style='color:#6B7280; margin-bottom:30px;'>{T['explore']}</p>", unsafe_allow_html=True)
-                with st.form("complete_registration", clear_on_submit=False):
-                    email = st.text_input("E-mailová adresa", placeholder=T["email_p"])
-                    pwd = st.text_input("Heslo", type="password", placeholder=T["pass_p"])
-                    st.write("---")
-                    name = st.text_input("Meno", placeholder=T["name_p"])
-                    city = st.text_input("Mesto", placeholder=T["city_p"])
-                    wc = st.toggle(T["wc"])
-                    if st.form_submit_button(T["submit_reg"]):
-                        if email and pwd and name:
-                            st.session_state.user_data.update({"name": name, "city": city, "wheelchair": wc, "email": email})
-                            st.session_state.is_registered = True
-                            st.balloons()
-                            st.rerun()
-                        else: st.error("Prosím, vyplňte meno, e-mail a heslo.")
-            else:
-                st.markdown(f"<p style='color:#6B7280; margin-bottom:30px;'>{T['welcome']}</p>", unsafe_allow_html=True)
-                with st.form("simple_login", clear_on_submit=False):
-                    email_login = st.text_input("E-mailová adresa", placeholder=T["email_p"])
-                    pass_login = st.text_input("Heslo", type="password", placeholder=T["pass_p"])
-                    if st.form_submit_button(T["submit_log"]):
-                        # Jednoduchá kontrola pre demo (Ak má meno, pustíme ho)
-                        if email_login and pass_login and st.session_state.user_data["name"] != "":
-                            st.session_state.is_registered = True
-                            st.rerun()
-                        else: st.error("Nesprávne údaje alebo profil neexistuje.")
-            st.markdown('</div>', unsafe_allow_html=True)
-
-# =========================================================================
-# 6. HLAVNÁ APLIKÁCIA (Po autentifikácii)
-# =========================================================================
 else:
-    # Sidebar menu s logom
-    with st.sidebar:
-        st.markdown('<div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">' + logo_svg.replace('width: 120px; height: 120px;', 'width: 40px; height: 40px;').replace('font-size: 12', 'font-size: 10').replace('display: block; margin: 0 auto 30px;', 'margin: 0;') + '</div>', unsafe_allow_html=True)
-        st.write(f"### Ahoj, {st.session_state.user_data['name']}!")
-        st.write("---")
-        if st.button("🚪 Odhlásiť sa"):
-            st.session_state.is_registered = False
-            st.session_state.auth_mode = "register" # Vrátime na registráciu
-            st.rerun()
-
-    # Obsah
-    st.markdown(f"<h1 style='text-align:center; margin-top:50px;'>Vitajte v OmniTravel</h1>", unsafe_allow_html=True)
-    st.write(f"<p style='text-align:center; color:#6B7280;'>Váš účet: {st.session_state.user_data['email']}</p>", unsafe_allow_html=True)
+    # Hlavná obrazovka po prihlásení
+    st.sidebar.markdown(logo_html.replace('120', '50'), unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align:center; margin-top:50px;'>Vitaj, {st.session_state.user_data['name']}! 🌍</h2>", unsafe_allow_html=True)
+    if st.button("Odhlásiť sa"):
+        st.session_state.is_registered = False
+        st.rerun()
