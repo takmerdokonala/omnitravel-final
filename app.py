@@ -108,75 +108,61 @@ with tab2:
     st.subheader("📸 Inteligentný skener menu OmniVision")
     st.write("Analyzuj jedálny lístok naživo alebo z uloženej fotky.")
     
-    # --- VÝBER ZDROJA OBRÁZKA ---
-    # Použijeme radio button, aby si používateľ vybral
+    # Výber zdroja
     zdroj_foto = st.radio(
         "Vyber zdroj obrázka:",
         ("Nová fotka (Fotoaparát)", "Nahrať z galérie (Uložená fotka)"),
         horizontal=True
     )
     
-    # Premenná pre obrázok
     image_to_process = None
     
     if zdroj_foto == "Nová fotka (Fotoaparát)":
-        # Pôvodný camera input
         foto_live = st.camera_input("Odfoť menu", key="camera_pro")
         if foto_live:
             image_to_process = foto_live
-            
     else:
-        # 📂 NOVÉ: File Uploader pre galériu
-        foto_upload = st.file_uploader(
-            "Vyber fotku menu z galérie",
-            type=["jpg", "jpeg", "png"],
-            key="gallery_pro",
-            help="Podporujeme formáty JPG, JPEG a PNG."
-        )
+        foto_upload = st.file_uploader("Vyber fotku z galérie", type=["jpg", "jpeg", "png"], key="gallery_pro")
         if foto_upload:
             image_to_process = foto_upload
-            # Voliteľne: Zobrazíme náhľad nahranej fotky
             st.image(image_to_process, caption="Nahrátý obrázok", width=300)
 
-    # --- SPRACOVANIE AI VISION (Spoločné pre oba zdroje) ---
     if image_to_process:
-        with st.spinner("OmniVision číta a analyzuje menu..."):
-            
-            # 1. Príprava obrázka (Získanie Base64)
-            bytes_data = image_to_process.getvalue()
-            base64_image = base64.b64encode(bytes_data).decode('utf-8')
-            
-            # 2. Volanie Vision Modelu (Llama 3.2 Vision)
+        with st.spinner("OmniVision sa pripája k AI..."):
             try:
-                response = client.chat.completions.create(
-                 model="llama-3.2-11b-vision",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": "Analyzuj toto menu. Prelož názvy jedál a nápojov do slovenčiny. Vypíš prehľadne ceny. Upozorni na zaujímavé jedlá, alergény alebo nezvyčajne vysoké ceny. Ak je to možné, odporuč jedlo pre dieťa."
-                                },
-                                {
-                                    "type": "image_url",
-                                    "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
-                                }
-                            ]
-                        }
-                    ],
-                    temperature=0.4,
-                    max_tokens=1024
-                )
+                # Príprava obrázka
+                bytes_data = image_to_process.getvalue()
+                base64_image = base64.b64encode(bytes_data).decode('utf-8')
                 
-                # 3. Zobrazenie výsledku
-                st.markdown(
-                    f'<div class="result-card"><h3>📝 Rozbor menu OmniVision:</h3>{response.choices[0].message.content}</div>',
-                    unsafe_allow_html=True
-                )
-                
-            except Exception as e:
-                st.error(f"Chyba pri analýze: {e}")
+                # --- TU JE TA ZMENA: NAJSKÔR SKÚSIME STABILNÝ MODEL ---
+                # Ak Groq vypne jeden, skúsime druhý
+                try:
+                    target_model = "llama-3.2-11b-vision-preview"
+                    response = client.chat.completions.create(
+                        model=target_model,
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": "Analyzuj toto menu. Prelož jedlá do slovenčiny, vypíš ceny a upozorni na alergény."},
+                                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                                ]
+                            }
+                        ],
+                        max_tokens=1024
+                    )
+                except Exception:
+                    # ZÁLOŽNÝ MODEL (ak prvý zlyhá)
+                    target_model = "llama-3.2-90b-vision-preview"
+                    response = client.chat.completions.create(
+                        model=target_model,
+                        messages=[
+                            {"role": "user", "content": [{"type": "text", "text": "Prelož toto menu do slovenčiny a vypíš ceny."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}]}
+                        ]
+                    )
+
+                # Zobrazenie výsledku
+                st.markdown(f'<div class="result-card"><h3>📝 Rozbor menu ({target_model}):</h3>{response.choices[0].message.content}</div>', unsafe_allow_html=True)
 # --- TAB 3: PRO FUNKCIE (Hlas & Offline) ---
 with tab3:
     st.subheader("💎 Exkluzívne Pro funkcie")
