@@ -1,10 +1,10 @@
 import streamlit as st
-import base64
 import math
+import base64
 import os # Pre kontrolu súborov
 
 # --- 1. KONFIGURÁCIA STRÁNKY ---
-# layout="wide" je kľúčové pre hranatý banner od okraja po okraj
+# layout="wide" je kľúčové pre full-width banner
 st.set_page_config(
     page_title="OmniTravel", 
     layout="wide", 
@@ -24,62 +24,55 @@ def vypocitaj_vzdialenost(lat1, lon1, lat2, lon2):
     return round(R * c, 2)
 
 # =========================================================================
-# ⚪️ ULTRA CLEAN WHITE STYLE (CSS)
+# ⚪️ PURE WHITE & FULL-WIDTH STYLE (CSS)
 # =========================================================================
 WHITE_STYLE = """
 <style>
-    /* 1. Import fontov: Quicksand pre eleganciu, Roboto pre jednoduchosť */
-    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;700&family=Roboto:wght@300;400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;700&display=swap');
 
-    /* 2. Globálne nastavenia pre čistý dizajn */
     .stApp { 
         background-color: #FFFFFF !important; 
         color: #1A1A1A !important; 
-        font-family: 'Roboto', sans-serif !important; /* Základný font */
+        font-family: 'Quicksand', sans-serif !important; 
         font-weight: 300; 
     }
     
-    /* 🚨 🚨 🚨 OPRAVA Sidebaru pre bielu 🚨 🚨 🚨 */
+    /* FIX: Bočné menu */
     [data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
         border-right: 1px solid #F0F0F0;
     }
     
-    /* Vynútenie tmavej farby pre texty v menu */
+    /* FIX: Tmavofialová pre texty v menu */
     [data-testid="stSidebarNav"] * {
         color: #4B0082 !important;
         font-weight: 600 !important;
     }
 
-    /* Nadpisy (H2, H3) zbavené neon efektu */
+    /* Nadpisy a karty (H2, H3) - Odteraz ČIERNE */
     h2, h3 { 
-        color: #8A2BE2 !important; 
+        color: #1A1A1A !important; /* Čierna namiesto fialovej */
         font-weight: 700; 
-        font-family: 'Quicksand', sans-serif !important; 
-        text-shadow: none !important;
     }
     
-    /* Elegantné Biele Karty zbavené emoji */
-    .card {
+    .omni-card, .feed-card {
         background: #FFFFFF;
         border: 1px solid #F0F0F0;
         padding: 20px; border-radius: 15px; margin-bottom: 20px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        color: #1A1A1A !important;
     }
-
-    /* Tlačidlá zbavené neon efektu */
-    div.stButton > button {
-        background-color: #FFFFFF;
-        border: 1px solid #8A2BE2;
-        color: #8A2BE2;
-        border-radius: 20px;
-        transition: 0.3s;
-        text-shadow: none !important;
-        box-shadow: none !important;
+    
+    /* Špeciálny štýl pre banner bez bielych okrajov */
+    .banner-container {
+        width: 100vw; /* 100% šírky obrazovky */
+        margin-left: -1rem; /* Kompenzácia predvoleného paddingu Streamlitu */
+        margin-right: -1rem;
+        margin-top: -1rem;
+        overflow: hidden;
     }
-    div.stButton > button:hover {
-        background-color: #F8F0FF;
+    .omni-banner {
+        width: 100%;
+        object-fit: cover;
     }
 </style>
 """
@@ -99,7 +92,7 @@ if st.session_state.step == "login":
     st.markdown('<div style="text-align: center; padding-top: 50px;">', unsafe_allow_html=True)
     st.image("https://img.icons8.com/fluency/96/000000/globe-earth.png", width=100)
     st.title("OmniTravel 2026")
-    st.write("Vstúp do éry čistého cestovania.")
+    st.write("Vstúp do novej éry čistého cestovania.")
     if st.button("✨ Vstúpiť"): 
         set_step_app()
         st.rerun()
@@ -111,14 +104,16 @@ if st.session_state.step == "login":
 elif st.session_state.step == "app":
     st.markdown(WHITE_STYLE, unsafe_allow_html=True)
     
-    # SIDEBAR
+    # --- BOČNÉ MENU (SIDEBAR) ---
     with st.sidebar:
         st.markdown('<h2>💜 OmniTravel</h2>', unsafe_allow_html=True)
         st.write("---")
-        # Názvy menu bez emoji
+        
+        # Pekne vypísaný zoznam navigácie (radio button)
         stranka = st.radio(
-            "HLAVNÉ MENU",
-            ["Komunitný Feed", "Okres a Pamiatky", "Skener Menu", "Profil"]
+            "NAVIGÁCIA",
+            ["Komunitný Feed", "Mapa Okolia", "AI Skener Menu", "Profil"],
+            index=0 # Predvolená Komunita
         )
         st.write("##")
         if st.button("Odhlásiť sa"):
@@ -127,55 +122,59 @@ elif st.session_state.step == "app":
 
     # --- OBSAH STRÁNOK ---
 
-    # --- A. KOMUNITNÝ FEED (BIELA VERZIA S VLOŽENÝM BANNEROM) ---
+    # --- A. KOMUNITNÝ FEED (S BANNEROM OD OKRAJA PO OKRAJ) ---
     if stranka == "Komunitný Feed":
         
-        # 🚨 🚨 🚨 KĽÚČOVÁ ČASŤ: VLOŽENIE OBRÁZKA DO ČELA (Hranaté a od okraja) 🚨 🚨 🚨
+        # 🚨 🚨 🚨 KĽÚČOVÁ ČASŤ: FULL-WIDTH BANNER 🚨 🚨 🚨
+        
+        # Kontrola, či si nahrala súbor 'header.png' na GitHub
         if os.path.exists("header.png"):
+            # Otvoríme a preložíme obrázok do base64 (HTML reč)
             with open("header.png", "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read()).decode()
             
-            # Hranatý a od okraja po okraj (w-full, m-0)
+            # Vložíme obrázok v full-width kontajneri s ELEGANTNÝM TIEŇOM pre oddelenie
             st.markdown(f"""
-            <div style="width: 100%; overflow: hidden; margin: 0; padding: 0;">
-                <img src="data:image/png;base64,{encoded_string}" style="width: 100%; object-fit: cover;">
+            <div class="banner-container" style="box-shadow: 0 10px 30px rgba(138, 43, 226, 0.15); border-bottom: 2px solid rgba(138, 43, 226, 0.1);">
+                <img src="data:image/png;base64,{encoded_string}" class="omni-banner">
             </div>
             """, unsafe_allow_html=True)
         else:
             # Ak zabudneš nahrať header.png na GitHub
             st.error("🚨 Chyba: Zabudla si nahrať 'header.png' na GitHub! Appka spadla. Nahraj ho prosím.")
+            st.markdown('<h1>OmniTravel Prototyp</h1>', unsafe_allow_html=True)
 
-        # --- NOVÝ ELEGANTNÝ NADPIS ---
-        # Tu používame font Quicksand pre eleganciu
+        # --- NOVÝ ČIERNY NADPIS (A ELEGANNTÉ ODDIELENIE) ---
         st.write("###")
-        st.markdown('<h1 style="color: #4B0082; font-family: Quicksand, sans-serif; font-weight: 300; text-align: center; font-size: 2rem;">Čo nové v komunite</h1>', unsafe_allow_html=True)
+        # Tu prefarbíme na čiernu
+        st.markdown('<h1 style="color: #1A1A1A; font-family: Quicksand, sans-serif; font-weight: 300; text-align: center; font-size: 2rem; margin-top: 15px;">Čo nové v komunite</h1>', unsafe_allow_html=True)
         st.write("##")
 
         # --- ZVYŠOK FEEDU ---
         st.markdown("""
-        <div class="card">
+        <div class="feed-card">
             <p><b>Maroš Svetobežník</b> • Nové Zámky</p>
             <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=600" style="width:100%; border-radius:10px;">
-            <p><br>Skvelý tip na kaviareň! Táto biela verzia appky bez emoji vyzerá neskutočne čisto a prémiovo.</p>
+            <p><br>Skvelý tip na kaviareň! Táto biela verzia appky vyzerá neskutočne čisto a prémiovo. ❤️ 45</p>
         </div>
         """, unsafe_allow_html=True)
 
-    # --- B. OKRES A PAMIATKY ---
-    elif stranka == "Okres a Pamiatky":
-        st.title("Pamiatky v okolí")
+    # --- B. MAPA OKOLIA ---
+    elif stranka == "Mapa Okolia":
+        st.title("🗺️ Pamiatky v okolí")
         # Centrum NZ
         moje_lat, moje_lon = 47.985, 18.161
         dist = vypocitaj_vzdialenost(moje_lat, moje_lon, 47.981, 18.160)
-        st.markdown(f'<div class="card"><h3>🏛️ Kalvária NZ</h3>Vzdialenosť: <b>{dist} km od teba</b></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="omni-card"><h3>🏛️ Kalvária NZ</h3>Vzdialenosť: <b>{dist} km</b></div>', unsafe_allow_html=True)
 
-    # --- C. SKENER MENU ---
-    elif stranka == "Skener Menu":
-        st.title("Inteligentný Skener Menu")
-        st.camera_input("Odfoťte menu pre preklad")
-        st.info("Pripravené na skenovanie. AI analyzuje dokument.")
+    # --- C. AI SKENER ---
+    elif stranka == "AI Skener Menu":
+        st.title("🤖 AI Skener")
+        st.camera_input("Odfoťte dokument")
+        st.info("Pripravené na skenovanie.")
 
     # --- D. PROFIL ---
     elif stranka == "Profil":
-        st.title("Profil Cestovateľa")
-        st.markdown('<div class="card"><h3>Ocko Cestovateľ</h3>Body: 250 VP<br>Level: Zlatý prieskumník</div>', unsafe_allow_html=True)
+        st.title("👤 Profil")
+        st.markdown('<div class="omni-card"><h3>Body: 250 VP</h3>Level: 1</div>', unsafe_allow_html=True)
         st.progress(25)
