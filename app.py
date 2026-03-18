@@ -1,73 +1,70 @@
-# --- 2. ROZŠÍRENÝ SLOVNÍK (Pridané preklady pre bezbariérovosť) ---
-# Doplň toto do svojho existujúceho slovníka translations pre každý jazyk
-translations = {
-    "Slovenčina": {
-        # ... predošlé preklady ...
-        "wheelchair": "BEZBARIÉROVÝ PRÍSTUP",
-        "save": "ULOŽIŤ PROFIL",
-        "edit": "UPRAVIŤ PROFIL"
-    },
-    "English": {
-        # ... predošlé preklady ...
-        "wheelchair": "WHEELCHAIR ACCESSIBILITY",
-        "save": "SAVE PROFILE",
-        "edit": "EDIT PROFILE"
-    }
-    # Podobne doplň pre ostatné jazyky...
-}
+import streamlit as st  # TOTO TU MUSÍ BYŤ AKO PRVÉ
+import os
 
-# --- 3. PAMÄŤ (Pridaný stav pre bezbariérovosť) ---
+# --- 1. KONFIGURÁCIA ---
+st.set_page_config(page_title="OmniTravel", layout="wide", initial_sidebar_state="collapsed")
+
+# --- 2. PAMÄŤ (OPRAVENÁ SEKCE) ---
+if 'lang' not in st.session_state: 
+    st.session_state.lang = "Slovenčina"
+if 'page' not in st.session_state: 
+    st.session_state.page = "home"
+
+# Inicializácia profilu vrátane bezbariérovosti
 if 'user_data' not in st.session_state:
     st.session_state.user_data = {
         "name": "",
-        "bio": "",
         "city": "",
-        "interests": [],
-        "wheelchair": False  # Nové pole
+        "wheelchair": False,  # Bezbariérový prístup
+        "interests": []
     }
 
-# ... (ponechaj predošlé CSS a SIDEBAR) ...
+# --- 3. ROZŠÍRENÝ SLOVNÍK (Pridaná bezbariérovosť) ---
+translations = {
+    "Slovenčina": {
+        "login": "PRIHLÁSIŤ", "register": "REGISTROVAŤ", "select_lang": "VYBERTE JAZYK",
+        "home": "DOMOVSKÁ STRÁNKA", "profile": "MÔJ PROFIL", "aimenu": "AI MENU",
+        "scanner": "SKENER", "map": "MAPA OKOLIA", "community": "KOMUNITA",
+        "wheelchair": "BEZBARIÉROVÝ PRÍSTUP", "save": "ULOŽIŤ PROFIL"
+    },
+    "English": {
+        "login": "LOGIN", "register": "REGISTER", "select_lang": "SELECT LANGUAGE",
+        "home": "HOME PAGE", "profile": "MY PROFILE", "aimenu": "AI MENU",
+        "scanner": "SCANNER", "map": "MAP AREA", "community": "COMMUNITY",
+        "wheelchair": "WHEELCHAIR ACCESS", "save": "SAVE PROFILE"
+    }
+    # ... sem môžeš doplniť ostatné jazyky z predošlého kódu
+}
 
-# --- 7. OBSAH (Sekcia PROFIL) ---
-if page == "profile":
-    T = translations[st.session_state.lang]
+T = translations.get(st.session_state.lang, translations["Slovenčina"])
+
+# --- 4. FUNKCIE ---
+def set_page(p):
+    st.session_state.page = p
+
+# --- 5. OBSAH STRÁNKY (PROFIL) ---
+if st.session_state.page == "profile":
+    st.markdown(f"## {T['profile']}")
     
+    # Ak profil neexistuje, ukážeme formulár
     if st.session_state.user_data["name"] == "":
-        st.subheader("Vytvorte si svoj profil")
-        
-        with st.form("profile_form"):
-            new_name = st.text_input("Meno")
-            new_city = st.text_input("Mesto")
+        with st.form("edit_profile"):
+            name = st.text_input("Meno")
+            city = st.text_input("Mesto")
             
-            # Pridanie prepínača pre bezbariérový prístup
-            st.write("---")
-            is_wheelchair = st.toggle(T["wheelchair"], value=st.session_state.user_data["wheelchair"])
-            st.write("---")
-            
-            new_interests = st.multiselect("Záujmy", options=["Gastro", "Príroda", "Kultúra"])
+            # Prepínač pre bezbariérovosť (Toggle)
+            wc = st.toggle(T["wheelchair"], value=st.session_state.user_data["wheelchair"])
             
             submit = st.form_submit_button(T["save"])
-            
-            if submit and new_name:
-                st.session_state.user_data.update({
-                    "name": new_name,
-                    "city": new_city,
-                    "wheelchair": is_wheelchair,
-                    "interests": new_interests
-                })
+            if submit:
+                st.session_state.user_data.update({"name": name, "city": city, "wheelchair": wc})
                 st.rerun()
     else:
-        # Zobrazenie profilu s ikonkou bezbariérovosti
-        col1, col2 = st.columns([1, 2])
-        with col2:
-            st.markdown(f"## {st.session_state.user_data['name']}")
-            
-            # Ak je zapnutý bezbariérový prístup, zobrazíme to viditeľne
-            if st.session_state.user_data["wheelchair"]:
-                st.markdown("♿ **Bezbariérové trasy zapnuté**")
-            
-            st.markdown(f"📍 {st.session_state.user_data['city']}")
-            
-            if st.button(T["edit"]):
-                st.session_state.user_data["name"] = ""
-                st.rerun()
+        # Zobrazenie profilu
+        st.success(f"Profil: {st.session_state.user_data['name']}")
+        if st.session_state.user_data["wheelchair"]:
+            st.info("♿ Aktívny bezbariérový režim")
+        
+        if st.button("Upraviť"):
+            st.session_state.user_data["name"] = ""
+            st.rerun()
