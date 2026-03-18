@@ -105,15 +105,45 @@ with tab1:
 
 # --- TAB 2: SKENER MENU (AI VISION) ---
 with tab2:
-    st.subheader("📸 Inteligentný skener menu")
-    st.write("Odfoť jedálny lístok a AI ti ho preloží a analyzuje.")
+    st.subheader("📸 Inteligentný skener menu OmniVision")
+    st.write("Analyzuj jedálny lístok naživo alebo z uloženej fotky.")
     
-    foto = st.camera_input("Odfoť menu", key="camera_pro")
+    # --- VÝBER ZDROJA OBRÁZKA ---
+    # Použijeme radio button, aby si používateľ vybral
+    zdroj_foto = st.radio(
+        "Vyber zdroj obrázka:",
+        ("Nová fotka (Fotoaparát)", "Nahrať z galérie (Uložená fotka)"),
+        horizontal=True
+    )
     
-    if foto:
-        with st.spinner("AI číta menu..."):
-            # 1. Príprava obrázka pre AI
-            bytes_data = foto.getvalue()
+    # Premenná pre obrázok
+    image_to_process = None
+    
+    if zdroj_foto == "Nová fotka (Fotoaparát)":
+        # Pôvodný camera input
+        foto_live = st.camera_input("Odfoť menu", key="camera_pro")
+        if foto_live:
+            image_to_process = foto_live
+            
+    else:
+        # 📂 NOVÉ: File Uploader pre galériu
+        foto_upload = st.file_uploader(
+            "Vyber fotku menu z galérie",
+            type=["jpg", "jpeg", "png"],
+            key="gallery_pro",
+            help="Podporujeme formáty JPG, JPEG a PNG."
+        )
+        if foto_upload:
+            image_to_process = foto_upload
+            # Voliteľne: Zobrazíme náhľad nahranej fotky
+            st.image(image_to_process, caption="Nahrátý obrázok", width=300)
+
+    # --- SPRACOVANIE AI VISION (Spoločné pre oba zdroje) ---
+    if image_to_process:
+        with st.spinner("OmniVision číta a analyzuje menu..."):
+            
+            # 1. Príprava obrázka (Získanie Base64)
+            bytes_data = image_to_process.getvalue()
             base64_image = base64.b64encode(bytes_data).decode('utf-8')
             
             # 2. Volanie Vision Modelu (Llama 3.2 Vision)
@@ -124,17 +154,26 @@ with tab2:
                         {
                             "role": "user",
                             "content": [
-                                {"type": "text", "text": "Analyzuj toto menu. Prelož názvy jedál do slovenčiny, vypíš ceny a upozorni na zaujímavé jedlá alebo alergény. Formátuj to prehľadne."},
-                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                                {
+                                    "type": "text",
+                                    "text": "Analyzuj toto menu. Prelož názvy jedál a nápojov do slovenčiny. Vypíš prehľadne ceny. Upozorni na zaujímavé jedlá, alergény alebo nezvyčajne vysoké ceny. Ak je to možné, odporuč jedlo pre dieťa."
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
+                                }
                             ]
                         }
                     ],
-                    temperature=0.5,
+                    temperature=0.4,
                     max_tokens=1024
                 )
                 
-                # 3. Zobrazenie výsledku v peknom fialovom boxe
-                st.markdown(f'<div class="result-card"><h3>📝 Rozbor menu:</h3>{response.choices[0].message.content}</div>', unsafe_allow_html=True)
+                # 3. Zobrazenie výsledku
+                st.markdown(
+                    f'<div class="result-card"><h3>📝 Rozbor menu OmniVision:</h3>{response.choices[0].message.content}</div>',
+                    unsafe_allow_html=True
+                )
                 
             except Exception as e:
                 st.error(f"Chyba pri analýze: {e}")
