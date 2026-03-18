@@ -9,11 +9,12 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. PAMÄŤ PRE NAVIGÁCIU ---
+# --- 2. PAMÄŤ PRE NAVIGÁCIU A JAZYK ---
 if 'page' not in st.session_state: st.session_state.page = "DOMOVSKÁ STRÁNKA"
+if 'lang' not in st.session_state: st.session_state.lang = "Slovenčina"
 
 # =========================================================================
-# ⚪️ STABILNÝ DIZAJN (OPRAVA ZVISLÉHO TEXTU)
+# ⚪️ ELEGANTNÝ GLOBÁLNY DIZAJN (CSS)
 # =========================================================================
 STYLE = """
 <style>
@@ -40,38 +41,39 @@ STYLE = """
         border-right: 1px solid #444444; letter-spacing: 1px;
     }
 
-    /* JAZYKOVÝ PÁSIK */
-    .nav-lang-bar {
-        display: flex; background-color: #F9F9F9; border-bottom: 1px solid #EEEEEE;
+    /* JAZYKOVÁ SEKCIA - ŠTÝLOVANIE SELECTBOXU */
+    .lang-label {
+        padding: 10px 20px 0px 20px;
+        font-size: 0.75rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
-    .nav-lang-item {
-        flex: 1; padding: 12px 0; text-align: center; font-size: 0.85rem; color: #999999;
+    
+    /* Úprava Streamlit selectboxu aby sedel do menu */
+    div[data-testid="stSelectbox"] {
+        padding: 0 15px 10px 15px !important;
     }
-    .nav-lang-active { color: #000000; font-weight: 600; }
 
-    /* ŠTÝLOVANIE TLAČIDIEL AKO POLOŽIEK MENU */
+    /* ŠTÝLOVANIE TLAČIDIEL MENU */
     div.stButton > button {
         width: 100% !important;
         border: none !important;
         border-bottom: 1px solid #F5F5F5 !important;
         background-color: transparent !important;
         color: #000000 !important;
-        padding: 25px 20px !important;
+        padding: 22px 20px !important;
         text-align: left !important;
-        font-size: 1rem !important;
+        font-size: 0.95rem !important;
         border-radius: 0px !important;
         font-weight: 400 !important;
-        display: block !important;
     }
     
     div.stButton > button:hover {
         background-color: #FBFBFB !important;
-        color: #000000 !important;
     }
 
-    /* Banner a texty */
-    .banner-box { width: 100%; line-height: 0; }
-    .omni-banner { width: 100%; display: block; }
+    /* Nadpisy */
     h1 { color: #000000 !important; font-weight: 300 !important; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
 </style>
 """
@@ -82,11 +84,29 @@ st.markdown(STYLE, unsafe_allow_html=True)
 # 📱 BOČNÉ MENU (SIDEBAR)
 # =========================================================================
 with st.sidebar:
-    # 1. Horný panel
+    # 1. Login / Register
     st.markdown('<div class="nav-top-auth"><div class="nav-auth-item">LOGIN</div><div class="nav-auth-item" style="border-right:none;">REGISTER</div></div>', unsafe_allow_html=True)
-    st.markdown('<div class="nav-lang-bar"><div class="nav-lang-item nav-lang-active">SK</div><div class="nav-lang-item" style="border-right:none;">EN</div></div>', unsafe_allow_html=True)
 
-    # 2. Navigačné tlačidlá (Namiesto radio buttons pre stabilitu)
+    # 2. Výber jazyka (Všetky jazyky sveta)
+    st.markdown('<div class="lang-label">Vyberte jazyk / Select Language</div>', unsafe_allow_html=True)
+    
+    # Tu môžeš doplniť akékoľvek ďalšie jazyky
+    seznam_jazykov = [
+        "Slovenčina", "Čeština", "English", "Deutsch", "Français", 
+        "Español", "Italiano", "Polski", "Magyar", "Tiếng Việt", "日本語"
+    ]
+    
+    selected_lang = st.selectbox(
+        "Language",
+        seznam_jazykov,
+        index=seznam_jazykov.index(st.session_state.lang),
+        label_visibility="collapsed"
+    )
+    st.session_state.lang = selected_lang
+
+    # 3. Navigačné menu (Stabilné tlačidlá)
+    st.write("---") # Jemná deliaca čiara
+    
     if st.button("DOMOVSKÁ STRÁNKA"): st.session_state.page = "DOMOVSKÁ STRÁNKA"
     if st.button("MÔJ PROFIL"): st.session_state.page = "MÔJ PROFIL"
     if st.button("AI MENU"): st.session_state.page = "AI MENU"
@@ -94,7 +114,7 @@ with st.sidebar:
     if st.button("MAPA OKOLIA"): st.session_state.page = "MAPA OKOLIA"
     if st.button("KOMUNITA"): st.session_state.page = "KOMUNITA"
 
-    st.markdown('<div style="padding: 40px 20px; color: #BBB; font-size: 0.7rem; text-align: center; letter-spacing: 2px;">OMNITRAVEL v1.0</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="padding: 40px 20px; color: #BBB; font-size: 0.7rem; text-align: center; letter-spacing: 2px;">OMNITRAVEL v1.0 | {st.session_state.lang.upper()}</div>', unsafe_allow_html=True)
 
 # =========================================================================
 # 🖼️ OBSAH STRÁNKY
@@ -105,12 +125,8 @@ if page == "DOMOVSKÁ STRÁNKA" or page == "KOMUNITA":
     if os.path.exists("header.png"):
         with open("header.png", "rb") as f:
             data = base64.b64encode(f.read()).decode()
-        st.markdown(f'<div class="banner-box"><img src="data:image/png;base64,{data}" class="omni-banner"></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="width:100%; line-height:0;"><img src="data:image/png;base64,{data}" style="width:100%;"></div>', unsafe_allow_html=True)
 
 st.markdown(f'<h1 style="margin-top: 50px;">{page}</h1>', unsafe_allow_html=True)
 
-# Ukážka obsahu
-if page == "DOMOVSKÁ STRÁNKA":
-    st.markdown('<div style="text-align:center; padding: 20px; color:#666;">Vitajte v stabilnom a čistom OmniTravel rozhraní.</div>', unsafe_allow_html=True)
-elif page == "SCANNER":
-    st.camera_input("Odfoťte menu")
+st.write(f"Zvolený jazyk rozhrania: **{st.session_state.lang}**")
