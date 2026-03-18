@@ -13,7 +13,7 @@ st.set_page_config(
 if 'step' not in st.session_state: st.session_state.step = "app"
 
 # =========================================================================
-# ⚪️ FINÁLNY TOPS STYLE DIZAJN (CSS)
+# ⚪️ PURE MINIMALIST DESIGN (CSS)
 # =========================================================================
 STYLE = """
 <style>
@@ -24,11 +24,11 @@ STYLE = """
         font-family: 'Inter', sans-serif !important; 
     }
 
-    /* ÚPLNÉ ODSTRÁNENIE BIELYCH OKRAJOV */
+    /* Čistá hlavička */
     [data-testid="stHeader"] { background-color: white !important; }
     .block-container { padding: 0rem !important; }
 
-    /* SIDEBAR - ČISTÝ VZHĽAD */
+    /* SIDEBAR - TOPS ŠTÝL */
     [data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
         border-right: 1px solid #E0E0E0;
@@ -36,7 +36,7 @@ STYLE = """
     }
     [data-testid="stSidebarUserContent"] { padding-top: 0rem !important; }
 
-    /* HORNÁ AUTH SEKCIA (Login/Register) */
+    /* Horná Auth sekcia */
     .nav-top-auth {
         display: flex;
         background-color: #333333;
@@ -51,7 +51,7 @@ STYLE = """
         border-right: 1px solid #444444;
     }
 
-    /* JAZYKOVÝ PÁSIK */
+    /* Jazykový pásik */
     .nav-lang-bar {
         display: flex;
         background-color: #F9F9F9;
@@ -67,31 +67,34 @@ STYLE = """
     }
     .nav-lang-active { color: #000000; font-weight: 600; }
 
-    /* FIX MENU: Schovanie krúžkov a čierne písmo */
+    /* MENU BEZ KRÚŽKOV A EMOJI */
     [data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label {
-        padding: 18px 25px !important;
+        padding: 20px 25px !important;
         border-bottom: 1px solid #F5F5F5 !important;
         margin: 0 !important;
         width: 100%;
     }
     
-    /* Schová ten čierny/červený krúžok */
-    [data-testid="stSidebar"] .stRadio div[data-testid="stMarkdownContainer"] {
-        margin-left: -30px !important;
-    }
-    [data-testid="stSidebar"] .stRadio input {
-        display: none;
-    }
-    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {
-        color: #000000 !important;
-        font-size: 1.05rem !important;
-        font-weight: 400 !important;
+    /* Schovanie systémových krúžkov */
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label [data-testid="stWidgetLabel"],
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label div:first-child {
+        display: none !important;
     }
 
-    /* Banner a nadpisy */
+    /* Čistý čierny text v menu */
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label p {
+        color: #000000 !important;
+        font-size: 1rem !important;
+        font-weight: 400 !important;
+        margin-left: -20px !important;
+        text-transform: uppercase; /* Voliteľné: pre viac prémiový look */
+        letter-spacing: 0.5px;
+    }
+
+    /* Obsah */
     .banner-box { width: 100%; line-height: 0; }
     .omni-banner { width: 100%; display: block; }
-    h1 { color: #000000 !important; font-weight: 400 !important; text-align: center; }
+    h1 { color: #000000 !important; font-weight: 300 !important; text-align: center; }
 
 </style>
 """
@@ -99,26 +102,33 @@ STYLE = """
 st.markdown(STYLE, unsafe_allow_html=True)
 
 # =========================================================================
-# 📱 BOČNÉ MENU
+# 📱 BOČNÉ MENU (BEZ EMOJI)
 # =========================================================================
 with st.sidebar:
     # 1. Login / Register
-    st.markdown('<div class="nav-top-auth"><div class="nav-auth-item">Login</div><div class="nav-auth-item" style="border-right:none;">Register</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-top-auth"><div class="nav-auth-item">LOGIN</div><div class="nav-auth-item" style="border-right:none;">REGISTER</div></div>', unsafe_allow_html=True)
 
     # 2. Jazyky
     st.markdown('<div class="nav-lang-bar"><div class="nav-lang-item nav-lang-active">SK</div><div class="nav-lang-item" style="border-right:none;">EN</div></div>', unsafe_allow_html=True)
 
-    # 3. Elegantný zoznam bez krúžkov
+    # 3. Zoznam stránok
     stranka = st.radio(
         "Navigácia",
-        ["🏠 Domovská stránka", "👤 Môj Profil", "🤖 AI Menu", "📸 Scanner", "📍 Mapa okolia / Kam vyraziť", "👥 Komunita"],
+        [
+            "Domovská stránka", 
+            "Môj Profil", 
+            "AI Menu", 
+            "Scanner", 
+            "Mapa okolia", 
+            "Komunita"
+        ],
         label_visibility="collapsed"
     )
 
-    st.markdown('<div style="padding: 20px; color: #BBB; font-size: 0.75rem;">OmniTravel v1.0</div>', unsafe_allow_html=True)
+    st.markdown('<div style="padding: 20px; color: #BBB; font-size: 0.7rem; text-align: center;">OMNITRAVEL v1.0</div>', unsafe_allow_html=True)
 
 # =========================================================================
-# 🖼️ OBSAH
+# 🖼️ OBSAH STRÁNKY
 # =========================================================================
 if "Domovská" in stranka or "Komunita" in stranka:
     if os.path.exists("header.png"):
@@ -126,7 +136,7 @@ if "Domovská" in stranka or "Komunita" in stranka:
             data = base64.b64encode(f.read()).decode()
         st.markdown(f'<div class="banner-box"><img src="data:image/png;base64,{data}" class="omni-banner"></div>', unsafe_allow_html=True)
 
-st.markdown(f'<h1 style="margin-top: 40px;">{stranka}</h1>', unsafe_allow_html=True)
+st.markdown(f'<h1 style="margin-top: 50px;">{stranka}</h1>', unsafe_allow_html=True)
 
 if "Domovská" in stranka:
-    st.markdown('<div style="max-width: 600px; margin: 0 auto; padding: 20px; text-align: center; color: #444;">Vitajte v OmniTravel. Všetko je teraz nastavené pre maximálnu eleganciu.</div>', unsafe_allow_html=True)
+    st.markdown('<div style="max-width: 600px; margin: 0 auto; padding: 20px; text-align: center; color: #666; font-weight: 300;">Dizajn je teraz v čistom textovom režime bez rušivých prvkov.</div>', unsafe_allow_html=True)
