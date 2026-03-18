@@ -1,114 +1,89 @@
 import streamlit as st
-import base64
 
-# --- 1. KONFIGURÁCIA (Musí byť úplne hore!) ---
+# --- 1. KONFIGURÁCIA ---
 st.set_page_config(page_title="OmniTravel", layout="wide", initial_sidebar_state="collapsed")
 
-# --- 2. PAMÄŤ A STAV (Ukladanie relácie) ---
-if 'lang' not in st.session_state: st.session_state.lang = "Slovenčina"
-if 'is_registered' not in st.session_state: st.session_state.is_registered = False
-
-# --- 3. DIZAJN A ŠTÝL (CSS pre presný vzhľad z image_9.png) ---
+# --- 2. CSS DIZAJN (Čistý, Biely, Vycentrovaný) ---
 st.markdown("""
 <style>
-    /* Import moderného písma */
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
     
-    html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    html, body, [class*="css"] { 
+        font-family: 'Plus Jakarta Sans', sans-serif !important; 
         background-color: #FFFFFF !important;
     }
-
-    /* Hlavný kontajner na vycentrovanie všetkého */
-    .main-center-container {
+    
+    /* Vycentrovanie na stred obrazovky */
+    .main-container {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
-        min-height: 80vh; /* Zabezpečí stred na výšku stránky */
+        height: 80vh;
         width: 100%;
-        max-width: 600px; /* Obmedzíme šírku na webe pre lepší vzhľad */
-        margin: auto;
     }
 
-    /* Nadpis OMNITRAVEL (Celoštátny) */
-    .brand-header {
+    /* Biele bubliny - tlačidlá */
+    div.stButton > button {
+        width: 300px !important;
+        background-color: #FFFFFF !important;
+        color: #1E293B !important;
+        padding: 16px !important;
+        border-radius: 50px !important; /* Plne zaoblené ako bublina */
+        font-weight: 600 !important;
+        border: 1px solid #E2E8F0 !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+        margin: 10px auto !important;
+        display: block;
+        transition: 0.3s;
+    }
+    
+    div.stButton > button:hover {
+        border-color: #4F46E5 !important;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Názov OMNITRAVEL */
+    .brand-title {
         font-weight: 700;
-        font-size: 2.5rem;
-        color: #111827;
-        letter-spacing: -1px;
-        margin-top: 10px;
-        margin-bottom: 5px;
+        font-size: 2.2rem;
+        color: #1E293B;
+        margin-top: 20px;
+        margin-bottom: 0px;
     }
 
-    /* Podnadpis (Sivý text) */
-    .brand-sub {
-        color: #6B7280;
+    .brand-subtitle {
+        color: #94A3B8;
         font-size: 1rem;
         margin-bottom: 40px;
-        font-weight: 300;
     }
-
-    /* --- ŠTÝL TLAČIDIEL (Indigo modrá, Plne zaoblená z image_9.png) --- */
-    div.stButton > button {
-        width: 100% !important;
-        max-width: 320px !important; /* Presná šírka pre biele bubliny */
-        background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%) !important;
-        color: white !important;
-        border: none !important;
-        padding: 16px !important;
-        border-radius: 50px !important; /* Maximálne zaoblenie z image_9.png */
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-        transition: 0.3s all;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        margin-bottom: 15px !important; /* Odstup pod sebou */
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-    }
-    div.stButton > button:hover {
-        opacity: 0.9;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
-    }
-
-    /* Schovanie dekorácií Streamlit */
-    [data-testid="stHeader"] { background: rgba(0,0,0,0); }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 4. FUNKCIA PRE ZOBRAZENIE LOGA ---
-def render_logo():
-    # Použijeme SVG pre perfektnú ostrosť loga (kompas z image_9.png)
-    logo_svg = """
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
-            <circle cx="50" cy="50" r="45" stroke="#E5E7EB" stroke-width="1.5" fill="white" />
-            <path d="M50 15 L56 38 H80 L62 52 L68 75 L50 61 L32 75 L38 52 L20 38 H44 Z" fill="#4F46E5" />
-            <circle cx="50" cy="50" r="3" fill="#111827" />
-        </svg>
-    """
-    st.markdown(logo_svg, unsafe_allow_html=True)
+# --- 3. OBSAH (Logo, Text a Tlačidlá) ---
+st.markdown('<div class="main-container">', unsafe_allow_html=True)
 
-# --- 5. OBSAH STRÁNKY (VYCENTROVANÝ) ---
-# Hlavný kontajner pre stred
-st.markdown('<div class="main-center-container">', unsafe_allow_html=True)
+# LOGO KOMPAS (SVG verzia pre maximálnu ostrosť)
+st.markdown("""
+    <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" stroke="#1E293B" stroke-width="1.5"/>
+        <circle cx="50" cy="50" r="40" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 2"/>
+        <path d="M50 15L58 45L50 40L42 45L50 15Z" fill="#4F46E5"/>
+        <path d="M50 85L42 55L50 60L58 55L50 85Z" fill="#94A3B8"/>
+        <circle cx="50" cy="50" r="4" fill="#1E293B"/>
+    </svg>
+""", unsafe_allow_html=True)
 
-# Zobrazenie LOGA (Vycentrované)
-render_logo()
+st.markdown('<h1 class="brand-title">OMNITRAVEL</h1>', unsafe_allow_html=True)
+st.markdown('<p class="brand-subtitle">Vaše dobrodružstvo začína.</p>', unsafe_allow_html=True)
 
-# Zobrazenie NÁZVU A TEXTU (Vycentrované)
-st.markdown('<div class="brand-header">OMNITRAVEL</div>', unsafe_allow_html=True)
-st.markdown('<div class="brand-sub">Zaregistrujte sa a objavujte svet bez hraníc</div>', unsafe_allow_html=True)
+# TLAČIDLÁ (Biele bubliny pod sebou)
+if st.button("PRIHLÁSENIE"):
+    st.write("Klikli ste na prihlásenie")
 
-# Zobrazenie TLAČIDIEL (Pod sebou, Indigo modrá, Plne zaoblené)
-# Použil som text z tvojho obrázka
-if st.button("PRIHLÁSIŤ"):
-    st.info("Sekcia PRIHLÁSIŤ sa pripravuje.")
-    
-if st.button("REGISTROVAŤ"):
-    st.info("Sekcia REGISTROVAŤ sa pripravuje.")
+if st.button("REGISTRÁCIA"):
+    st.write("Klikli ste na registráciu")
 
-# Koniec kontajnera
 st.markdown('</div>', unsafe_allow_html=True)
