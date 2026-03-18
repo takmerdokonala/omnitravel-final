@@ -1,91 +1,86 @@
 import streamlit as st
-import base64
-import os
 
 # --- 1. KONFIGURÁCIA ---
-st.set_page_config(
-    page_title="OmniTravel", 
-    layout="wide", 
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="OmniTravel", layout="wide", initial_sidebar_state="collapsed")
 
-# --- 2. FUNKCIE PRE ZMENU STAVU (CALLBACKS) ---
-def change_page(new_page):
-    st.session_state.page = new_page
-
-def change_lang():
-    # Táto funkcia sa zavolá automaticky pri zmene v selectboxe
-    st.session_state.lang = st.session_state.lang_selector
-
-# --- 3. INICIALIZÁCIA PAMÄTE ---
-if 'page' not in st.session_state: st.session_state.page = "DOMOVSKÁ STRÁNKA"
-if 'lang' not in st.session_state: st.session_state.lang = "Slovenčina"
-
-# =========================================================================
-# ⚪️ CSS PRE KRAJŠÍ VZHĽAD
-# =========================================================================
-st.markdown("""
-<style>
-    .stApp { background-color: #FFFFFF !important; font-family: 'Inter', sans-serif !important; }
-    [data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E0E0E0; }
-    
-    /* Horný tmavý pás */
-    .nav-top-auth { display: flex; background-color: #333333; color: white; text-align: center; }
-    .nav-auth-item { flex: 1; padding: 18px 0; font-size: 0.8rem; font-weight: 600; border-right: 1px solid #444; }
-
-    /* Štýl tlačidiel v menu */
-    div.stButton > button {
-        width: 100% !important;
-        border: none !important;
-        border-bottom: 1px solid #F5F5F5 !important;
-        background-color: transparent !important;
-        color: #000 !important;
-        padding: 20px !important;
-        text-align: left !important;
-        font-size: 1rem !important;
-        border-radius: 0px !important;
+# --- 2. SLOVNÍK PREKLADOV ---
+translations = {
+    "Slovenčina": {
+        "login": "PRIHLÁSIŤ", "register": "REGISTROVAŤ", "select_lang": "VYBERTE JAZYK",
+        "home": "DOMOVSKÁ STRÁNKA", "profile": "MÔJ PROFIL", "aimenu": "AI MENU",
+        "scanner": "SKENER", "map": "MAPA OKOLIA", "community": "KOMUNITA",
+        "welcome": "Vitajte v OmniTravel!"
+    },
+    "English": {
+        "login": "LOGIN", "register": "REGISTER", "select_lang": "SELECT LANGUAGE",
+        "home": "HOME PAGE", "profile": "MY PROFILE", "aimenu": "AI MENU",
+        "scanner": "SCANNER", "map": "MAP AREA", "community": "COMMUNITY",
+        "welcome": "Welcome to OmniTravel!"
+    },
+    "Deutsch": {
+        "login": "ANMELDEN", "register": "REGISTRIEREN", "select_lang": "SPRACHE WÄHLEN",
+        "home": "STARTSEITE", "profile": "MEIN PROFIL", "aimenu": "KI MENÜ",
+        "scanner": "SCANNER", "map": "UMGEBUNGSKARTE", "community": "GEMEINSCHAFT",
+        "welcome": "Willkommen bei OmniTravel!"
     }
+}
+
+# --- 3. PAMÄŤ ---
+if 'lang' not in st.session_state: st.session_state.lang = "Slovenčina"
+if 'page' not in st.session_state: st.session_state.page = "home"
+
+# Skratka pre aktuálny preklad
+T = translations[st.session_state.lang]
+
+# --- 4. FUNKCIE ---
+def change_lang():
+    st.session_state.lang = st.session_state.new_lang_val
+
+def set_page(p):
+    st.session_state.page = p
+
+# --- 5. CSS ---
+st.markdown(f"""
+<style>
+    .stApp {{ background-color: #FFFFFF; font-family: 'Inter', sans-serif; }}
+    .nav-top-auth {{ display: flex; background-color: #333333; color: white; text-align: center; }}
+    .nav-auth-item {{ flex: 1; padding: 18px 0; font-size: 0.8rem; font-weight: 600; border-right: 1px solid #444; }}
+    div.stButton > button {{
+        width: 100%; border: none; border-bottom: 1px solid #F5F5F5;
+        background-color: transparent; color: #000; padding: 20px;
+        text-align: left; font-size: 1rem; border-radius: 0px;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================================================
-# 📱 SIDEBAR (BOČNÉ MENU)
-# =========================================================================
+# --- 6. SIDEBAR ---
 with st.sidebar:
-    # 1. Login/Register (statické)
-    st.markdown('<div class="nav-top-auth"><div class="nav-auth-item">LOGIN</div><div class="nav-auth-item" style="border-right:none;">REGISTER</div></div>', unsafe_allow_html=True)
+    # Login/Register s prekladom
+    st.markdown(f'''
+        <div class="nav-top-auth">
+            <div class="nav-auth-item">{T["login"]}</div>
+            <div class="nav-auth-item" style="border-right:none;">{T["register"]}</div>
+        </div>
+    ''', unsafe_allow_html=True)
 
-    # 2. VÝBER JAZYKA (S kľúčom a callbackom)
-    st.write("")
-    st.caption("🌍 VYBERTE JAZYK / SELECT LANGUAGE")
-    
-    seznam_jazykov = ["Slovenčina", "Čeština", "English", "Deutsch", "Français", "Español"]
-    
+    # Funkčný výber jazyka
+    st.caption(f"🌍 {T['select_lang']}")
     st.selectbox(
-        "Jazyk",
-        options=seznam_jazykov,
-        index=seznam_jazykov.index(st.session_state.lang),
-        key="lang_selector",
-        on_change=change_lang,
-        label_visibility="collapsed"
+        "Lang", options=list(translations.keys()), 
+        index=list(translations.keys()).index(st.session_state.lang),
+        key="new_lang_val", on_change=change_lang, label_visibility="collapsed"
     )
 
     st.write("---")
 
-    # 3. NAVIGÁCIA (Tlačidlá s callbackom)
-    menu_items = ["DOMOVSKÁ STRÁNKA", "MÔJ PROFIL", "AI MENU", "SCANNER", "MAPA OKOLIA", "KOMUNITA"]
-    
-    for item in menu_items:
-        st.button(item, on_click=change_page, args=(item,))
+    # Menu s prekladom
+    if st.button(T["home"]): set_page("home")
+    if st.button(T["profile"]): set_page("profile")
+    if st.button(T["aimenu"]): set_page("aimenu")
+    if st.button(T["scanner"]): set_page("scanner")
+    if st.button(T["map"]): set_page("map")
+    if st.button(T["community"]): set_page("community")
 
-# =========================================================================
-# 🖼️ HLAVNÝ OBSAH
-# =========================================================================
-# Nadpis sa mení podľa stlačenia tlačidla
-st.markdown(f'<h1 style="text-align:center; margin-top:50px;">{st.session_state.page}</h1>', unsafe_allow_html=True)
-
-# Kontrola, či sa jazyk mení
-st.write(f"🌐 Aktuálne nastavený jazyk: **{st.session_state.lang}**")
-
-if st.session_state.page == "SCANNER":
-    st.camera_input("Odfoťte dokument")
+# --- 7. OBSAH ---
+st.markdown(f'<h1 style="text-align:center; margin-top:50px;">{T[st.session_state.page]}</h1>', unsafe_allow_html=True)
+st.write(f"### {T['welcome']}")
