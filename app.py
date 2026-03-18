@@ -1,75 +1,83 @@
 import streamlit as st
+import base64
 
-# --- 1. KONFIGURÁCIA ---
+# --- 1. KONFIGURÁCIA STRÁNKY (Musí byť úplne hore!) ---
+# Nastavíme 'wide' layout, ale v CSS ho obmedzíme pre mobilný vzhľad
 st.set_page_config(page_title="OmniTravel", layout="wide", initial_sidebar_state="collapsed")
 
-# --- 2. DIZAJN (CSS) ---
+# --- 2. CSS DIZAJN (Tento blok zaručuje biele pozadie a stred) ---
 st.markdown("""
 <style>
+    /* Vynútenie bieleho pozadia pre celú aplikáciu */
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
     
     html, body, [class*="css"] { 
         font-family: 'Plus Jakarta Sans', sans-serif !important; 
         background-color: #FFFFFF !important;
     }
-    
-    /* Vycentrovanie na stred obrazovky */
-    .main-container {
+
+    /* Hlavný kontajner, ktorý vycentruje všetko na stred obrazovky (na výšku aj šírku) */
+    .main-center-container {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
-        height: 85vh;
+        min-height: 85vh; /* Zabezpečí stred na výšku */
         width: 100%;
+        max-width: 450px; /* Obmedzenie šírky pre mobilný vzhľad */
+        margin: auto;
     }
 
-    /* Biele bubliny - presne podľa tvojho prvého obrázka */
+    /* --- BIELE BUBLINOVÉ TLAČIDLÁ (Presne podľa tvojho vzoru) --- */
     div.stButton > button {
-        width: 320px !important;
+        width: 100% !important;
+        max-width: 320px !important; /* Šírka pre biele bubliny */
         background-color: #FFFFFF !important;
         color: #1E293B !important;
         padding: 18px !important;
-        border-radius: 50px !important;
+        border-radius: 50px !important; /* Maximálne zaoblenie - bublina */
         font-weight: 600 !important;
         border: 1px solid #E2E8F0 !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important;
-        margin: 10px auto !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+        margin: 10px auto !important; /* Odstup pod sebou a vycentrovanie */
         display: block;
-        transition: 0.3s;
+        transition: 0.3s all;
     }
-    
     div.stButton > button:hover {
         border-color: #4F46E5 !important;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.08) !important;
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.06) !important;
     }
 
+    /* Nadpis OMNITRAVEL */
     .brand-title {
         font-weight: 700;
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         color: #1E293B;
         margin-top: 15px;
         margin-bottom: 0px;
         letter-spacing: -1px;
     }
 
+    /* Podnadpis */
     .brand-subtitle {
         color: #94A3B8;
         font-size: 1rem;
-        margin-bottom: 50px;
+        margin-bottom: 40px;
     }
 
-    /* Schovanie dekorácií */
+    /* Odstránenie Streamlit dekorácií na vrchu stránky */
     [data-testid="stHeader"] { background: rgba(0,0,0,0); }
-    [data-testid="stToolbar"] { display: none; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. OBSAH ---
-st.markdown('<div class="main-container">', unsafe_allow_html=True)
+# --- 3. OBSAH A LOGO KOMPASU (VYCENTROVANÉ) ---
+# Otvoríme hlavný stredový kontajner
+st.markdown('<div class="main-center-container">', unsafe_allow_html=True)
 
-# LOGO KOMPAS (SVG) - Presne podľa 1000116054.jpg
+# SVG LOGO KOMPAS (Prekreslené pre perfektnú ostrosť a stred)
+# Je to kompas z tvojho prvého obrázka
 st.markdown("""
     <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="48" stroke="#1E293B" stroke-width="1.5"/>
@@ -80,14 +88,16 @@ st.markdown("""
     </svg>
 """, unsafe_allow_html=True)
 
+# Názov a podnadpis
 st.markdown('<h1 class="brand-title">OMNITRAVEL</h1>', unsafe_allow_html=True)
 st.markdown('<p class="brand-subtitle">Vaše dobrodružstvo začína.</p>', unsafe_allow_html=True)
 
-# TLAČIDLÁ (Biele bubliny)
+# TLAČIDLÁ (Biele bubliny pod sebou)
 if st.button("PRIHLÁSENIE"):
-    st.info("Pripravujem prihlasovací formulár...")
+    st.write("Navigácia na prihlásenie...")
 
 if st.button("REGISTRÁCIA"):
-    st.info("Pripravujem registračný formulár...")
+    st.write("Navigácia na registráciu...")
 
+# Koniec kontajnera
 st.markdown('</div>', unsafe_allow_html=True)
