@@ -2,35 +2,133 @@ import streamlit as st
 import base64
 from groq import Groq
 from tavily import TavilyClient
+from streamlit_js_eval import streamlit_js_eval, get_geolocation
 
-# --- BEZPEČNÉ NAČÍTANIE KĽÚČOV (Zo Streamlit Secrets) ---
+# --- BEZPEČNÁ KONFIGURÁCIA (Secrets) ---
 try:
     GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
     TAVILY_API_KEY = st.secrets["TAVILY_API_KEY"]
 except KeyError:
-    st.error("Chýbajú API kľúče v nastaveniach (Secrets)!")
+    st.error("Chýbajú API kľúče v Secrets! Aplikácia nemôže fungovať.")
     st.stop()
 
 client = Groq(api_key=GROQ_API_KEY)
 tavily = TavilyClient(api_key=TAVILY_API_KEY)
 
-st.set_page_config(page_title="OmniTravel Pro", page_icon="📍")
+# --- FIALOVÝGlassmorphism DIZAJN (CSS) ---
+FIALOVA = "#9333ea" # Krásna neónová fialová
+POZADIE = "#110022" # Temná fialová (temné pozadie)
 
-st.title("📍 OmniTravel AI")
+st.set_page_config(page_title="OmniTravel Pro", page_icon="📍", layout="wide")
 
-# Jednoduché menu
-tab1, tab2 = st.tabs(["🗺️ Pamiatky", "📸 Skener"])
+st.markdown(f"""
+    <style>
+    /* Základné nastavenia */
+    .stApp {{ background: {POZADIE}; color: white; }}
+    .stApp > header {{ background: transparent; }}
+    
+    /* Nadpisy a text */
+    h1, h2, h3, p {{ color: white !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }}
+    .pro-title {{ color: {FIALOVA}; font-weight: bold; font-size: 2em; }}
+    
+    /* Tlačidlá a Vstupy */
+    .stButton > button {{ 
+        background-color: {FIALOVA} !important; border-radius: 20px; border: none; 
+        color: white !important; padding: 10px 20px; transition: 0.3s;
+    }}
+    .stButton > button:hover {{ background-color: white !important; color: {FIALOVA} !important; }}
+    .stTextInput > div > div > input {{ background-color: rgba(255,255,255,0.05) !important; color: white !important; border: 1px solid {FIALOVA} !important; border-radius: 10px; }}
 
+    /* Karta výsledkov */
+    .result-card {{ 
+        background: rgba(255, 255, 255, 0.05); padding: 25px; 
+        border-radius: 20px; border-left: 6px solid {FIALOVA}; 
+        box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+    }}
+    
+    /* Pro zámok (Zlaté tlačidlo) */
+    .pro-lock {{ background: linear-gradient(45deg, #FFD700, #FFA500) !important; color: black !important; font-weight: bold; }}
+    </style>
+    """, unsafe_allow_html=True)
+
+# Logo a Názov
+st.image("image_0.png", width=120) # Tu bude tvoje logo
+st.markdown('<div class="pro-title">OmniTravel AI <span style="font-size: 0.5em; color: #aaa;">PRO</span></div>', unsafe_allow_html=True)
+
+# Bočný panel - Nastavenia
+with st.sidebar:
+    st.subheader("🔑 Profil a Platba")
+    user_pro = st.toggle("Aktivovať Pro verziu (Test)", value=False)
+    
+    if user_pro:
+        st.success("Máš aktivovanú Pro verziu! 💎")
+    else:
+        st.warning("Používaš Free verziu.")
+        if st.button("🔥 Prejsť na PRO", help="Odomkni Audio a Offline"):
+            st.toast("Presmerovávam na platobnú bránu (Test)...")
+
+# --- FUNKCIE APPKY ---
+
+tab1, tab2, tab3 = st.tabs(["🗺️ Pamiatky", "📸 Skener Menu", "💎 Pro Funkcie"])
+
+# --- TAB 1: PAMIATKY & GPS ---
 with tab1:
-    mesto = st.text_input("Zadaj mesto:", "Nové Zámky")
-    if st.button("Hľadať"):
-        with st.spinner("Hľadám na webe..."):
-            search = tavily.search(query=f"top attractions in {mesto} 2026 prices")
-            st.write("AI spracováva výsledky...")
-            # Tu AI vygeneruje odpoveď (zjednodušené pre test)
-            st.info(f"Našiel som pamiatky v meste {mesto}. (Dáta sú pripravené)")
+    st.subheader("Zisti, čo je v okolí")
+    
+    # 📍 GPS POLOHA (Pomocou streamlit_js_eval)
+    gps_check = st.checkbox("Použiť moju polohu (📍 GPS)")
+    loc = None
+    if gps_check:
+        with st.spinner("Získavam polohu z GPS..."):
+            loc = get_geolocation()
+            if loc:
+                lat = loc['coords']['latitude']
+                lon = loc['coords']['longitude']
+                st.write(f"Získaná poloha: {lat:.4f}, {lon:.4f}")
+                # AI search na základe GPS
+                query = f"top sights near latitude {lat} longitude {lon} 2026 prices"
+            else:
+                st.error("Nepodarilo sa získať polohu. Skontroluj povolenia prehliadača.")
+                gps_check = False # Reset checku
+    
+    mesto = st.text_input("Zadaj mesto (ak nemáš GPS):", "Nové Zámky", disabled=gps_check)
+    
+    if not gps_check and not mesto:
+        st.stop()
+    
+    # AI Vyhľadávanie
+    if st.button("Hľadať info na webe"):
+        with st.spinner("Hľadám..."):
+            res = tavily.search(query=query if gps_check else f"top sights in {mesto} 2026 prices")
+            st.info("AI vygeneruje podrobný prehľad...")
+            st.markdown(f'<div class="result-card">{res}</div>', unsafe_allow_html=True)
 
+# --- TAB 2: SKENER MENU ---
 with tab2:
-    foto = st.camera_input("Odfoť menu")
+    st.subheader("Odfoť menu")
+    
+    foto = st.camera_input("Odfoť menu", key="camera")
     if foto:
-        st.success("Foto prijaté! AI ho analyzuje...")
+        with st.spinner("AI analyzuje fotku (Vision)..."):
+            # (Tu bude Vision AI – zatiaľ len test)
+            st.success("Foto prijaté! (Tu bude AI analýza cien a alergénov)")
+
+# --- TAB 3: PRO FUNKCIE (Hlas & Offline) ---
+with tab3:
+    st.subheader("💎 Exkluzívne Pro funkcie")
+    
+    # AUDIO SPRIEVODCA (Odomknutý len v Pro verzii)
+    st.write("📖 Audio Sprievodca pre pamiatky")
+    if user_pro:
+        # Použijeme gTTS pre hlas
+        st.info("Tu si vypočuješ Audio")
+    else:
+        st.button("🔒 Audio Sprievodca (Len PRO)", key="audio_lock")
+    
+    st.write("---")
+    
+    st.write("☁️ Offline prístup (Uloženie skenov)")
+    if user_pro:
+        st.info("Skeny sú uložené offline")
+    else:
+        st.button("🔒 Offline Ukladanie (Len PRO)", key="offline_lock")
