@@ -13,7 +13,7 @@ st.set_page_config(
 if 'step' not in st.session_state: st.session_state.step = "app"
 
 # =========================================================================
-# ⚪️ PURE MINIMALIST DESIGN (CSS)
+# ⚪️ PURE MINIMALIST DESIGN (OPRAVA ZOBRAZENIA TEXTU)
 # =========================================================================
 STYLE = """
 <style>
@@ -24,11 +24,10 @@ STYLE = """
         font-family: 'Inter', sans-serif !important; 
     }
 
-    /* Čistá hlavička */
     [data-testid="stHeader"] { background-color: white !important; }
     .block-container { padding: 0rem !important; }
 
-    /* SIDEBAR - TOPS ŠTÝL */
+    /* SIDEBAR */
     [data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
         border-right: 1px solid #E0E0E0;
@@ -46,9 +45,10 @@ STYLE = """
     .nav-auth-item {
         flex: 1;
         padding: 18px 0;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 500;
         border-right: 1px solid #444444;
+        letter-spacing: 1px;
     }
 
     /* Jazykový pásik */
@@ -62,33 +62,39 @@ STYLE = """
         padding: 12px 0;
         text-align: center;
         font-size: 0.85rem;
-        color: #666666;
+        color: #999999;
         border-right: 1px solid #EEEEEE;
     }
     .nav-lang-active { color: #000000; font-weight: 600; }
 
-    /* MENU BEZ KRÚŽKOV A EMOJI */
+    /* MENU - OPRAVA VIDITEĽNOSTI TEXTU */
     [data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label {
-        padding: 20px 25px !important;
+        padding: 22px 25px !important;
         border-bottom: 1px solid #F5F5F5 !important;
         margin: 0 !important;
         width: 100%;
+        display: flex;
     }
     
-    /* Schovanie systémových krúžkov */
+    /* Úplné schovanie krúžkov a medzier po nich */
     [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label [data-testid="stWidgetLabel"],
     [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label div:first-child {
         display: none !important;
     }
 
-    /* Čistý čierny text v menu */
-    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label p {
+    /* VYKRESLENIE TEXTU - ČIERNA A DOSTREDU */
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {
         color: #000000 !important;
         font-size: 1rem !important;
         font-weight: 400 !important;
-        margin-left: -20px !important;
-        text-transform: uppercase; /* Voliteľné: pre viac prémiový look */
-        letter-spacing: 0.5px;
+        margin-left: 0px !important; /* Reset posunu */
+        text-align: left !important;
+        width: 100%;
+    }
+
+    /* Efekt pri vybraní (jemné zvýraznenie) */
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[data-filled="true"] {
+        background-color: #FBFBFB !important;
     }
 
     /* Obsah */
@@ -102,7 +108,7 @@ STYLE = """
 st.markdown(STYLE, unsafe_allow_html=True)
 
 # =========================================================================
-# 📱 BOČNÉ MENU (BEZ EMOJI)
+# 📱 BOČNÉ MENU
 # =========================================================================
 with st.sidebar:
     # 1. Login / Register
@@ -111,7 +117,7 @@ with st.sidebar:
     # 2. Jazyky
     st.markdown('<div class="nav-lang-bar"><div class="nav-lang-item nav-lang-active">SK</div><div class="nav-lang-item" style="border-right:none;">EN</div></div>', unsafe_allow_html=True)
 
-    # 3. Zoznam stránok
+    # 3. Zoznam stránok (ČISTÝ TEXT)
     stranka = st.radio(
         "Navigácia",
         [
@@ -125,10 +131,10 @@ with st.sidebar:
         label_visibility="collapsed"
     )
 
-    st.markdown('<div style="padding: 20px; color: #BBB; font-size: 0.7rem; text-align: center;">OMNITRAVEL v1.0</div>', unsafe_allow_html=True)
+    st.markdown('<div style="padding: 40px 20px; color: #CCC; font-size: 0.7rem; text-align: center; letter-spacing: 2px;">OMNITRAVEL v1.0</div>', unsafe_allow_html=True)
 
 # =========================================================================
-# 🖼️ OBSAH STRÁNKY
+# 🖼️ OBSAH
 # =========================================================================
 if "Domovská" in stranka or "Komunita" in stranka:
     if os.path.exists("header.png"):
@@ -136,7 +142,7 @@ if "Domovská" in stranka or "Komunita" in stranka:
             data = base64.b64encode(f.read()).decode()
         st.markdown(f'<div class="banner-box"><img src="data:image/png;base64,{data}" class="omni-banner"></div>', unsafe_allow_html=True)
 
-st.markdown(f'<h1 style="margin-top: 50px;">{stranka}</h1>', unsafe_allow_html=True)
+st.markdown(f'<h1 style="margin-top: 50px; text-transform: uppercase; letter-spacing: 2px;">{stranka}</h1>', unsafe_allow_html=True)
 
 if "Domovská" in stranka:
-    st.markdown('<div style="max-width: 600px; margin: 0 auto; padding: 20px; text-align: center; color: #666; font-weight: 300;">Dizajn je teraz v čistom textovom režime bez rušivých prvkov.</div>', unsafe_allow_html=True)
+    st.markdown('<div style="max-width: 600px; margin: 0 auto; padding: 20px; text-align: center; color: #888; font-weight: 300; line-height: 1.6;">Vitajte v minimalistickom rozhraní OmniTravel. Vaše cesty začínajú tu.</div>', unsafe_allow_html=True)
