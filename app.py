@@ -1,12 +1,11 @@
 import streamlit as st
-from streamlit_google_oauth import login_button
+import urllib.parse
 
 # --- 1. KONFIGURÁCIA ---
 st.set_page_config(page_title="OmniTravel", layout="wide", initial_sidebar_state="collapsed")
 
 # Načítanie údajov zo Secrets
 CLIENT_ID = st.secrets.get("google_client_id")
-CLIENT_SECRET = st.secrets.get("google_client_secret")
 REDIRECT_URI = st.secrets.get("redirect_uri")
 
 # --- 2. DIZAJN (Tvoj biely štýl) ---
@@ -17,7 +16,12 @@ st.markdown("""
     .main-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 80vh; margin: auto; max-width: 400px; }
     .brand-title { font-weight: 700; font-size: 2.2rem; color: #1E293B; margin-top: 15px; }
     .brand-subtitle { color: #94A3B8; margin-bottom: 40px; }
-    div.stButton > button { width: 100% !important; background-color: #FFFFFF !important; border-radius: 50px !important; padding: 14px !important; border: 1px solid #E2E8F0 !important; font-weight: 600 !important; }
+    .google-btn {
+        display: inline-block; padding: 14px 24px; background-color: #FFFFFF; color: #1E293B;
+        border-radius: 50px; border: 1px solid #E2E8F0; font-weight: 600; text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: 0.3s; width: 100%;
+    }
+    .google-btn:hover { border-color: #4F46E5; transform: translateY(-2px); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -29,23 +33,28 @@ st.markdown('<div class="main-container">', unsafe_allow_html=True)
 render_logo()
 st.markdown('<h1 class="brand-title">OMNITRAVEL</h1>', unsafe_allow_html=True)
 
-if not CLIENT_ID or not CLIENT_SECRET:
-    st.error("Nastav si Secrets (ID a Secret)!")
-else:
-    # Tlačidlo z novej knižnice
-    login_info = login_button(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        redirect_uri=REDIRECT_URI,
-    )
+# Vytvorenie Google Login URL ručne
+params = {
+    "client_id": CLIENT_ID,
+    "redirect_uri": REDIRECT_URI,
+    "response_type": "token",
+    "scope": "openid email profile",
+}
+login_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
 
-    if login_info:
-        access_token, user_id, user_email = login_info
-        st.success(f"Vitaj, {user_email}!")
-        if st.button("ODHLÁSIŤ SA"):
-            st.rerun()
-    else:
-        st.markdown('<p class="brand-subtitle">Vaše dobrodružstvo začína.</p>', unsafe_allow_html=True)
-        # Tlačidlo sa zobrazí automaticky funkciou login_button vyššie
+# Kontrola, či sme sa vrátili z Google (token v URL)
+query_params = st.query_params
+if "access_token" in query_params or "id_token" in query_params:
+    st.success("Prihlásenie úspešné!")
+    if st.button("Pokračovať do aplikácie"):
+        st.query_params.clear()
+        st.rerun()
+else:
+    st.markdown('<p class="brand-subtitle">Vaše dobrodružstvo začína.</p>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{login_url}" class="google-btn">Sign in with Google</a>', unsafe_allow_html=True)
+    
+    st.markdown('<p style="color:#CBD5E1; font-size:0.8rem; margin:15px 0;">ALEBO</p>', unsafe_allow_html=True)
+    if st.button("POUŽIŤ EMAIL"):
+        st.info("Pripravujeme...")
 
 st.markdown('</div>', unsafe_allow_html=True)
