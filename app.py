@@ -8,16 +8,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. INICIALIZÁCIA GOOGLE AUTH (Presná verzia pre tvoju knižnicu) ---
+# --- 2. INICIALIZÁCIA GOOGLE AUTH (Verzia 2026) ---
 auth = Authenticate(
     client_id=st.secrets["google_client_id"],
-    client_secret=st.secrets["google_client_secret"], # Tu bola chyba, musí to byť client_secret
+    client_secret=st.secrets["google_client_secret"],
     redirect_uri=st.secrets["redirect_uri"] + "/component/streamlit_google_oauth.google_oauth/index.html",
-    cookie_name="omnitravel_login_cookie",
-    key="omni_secret_shhh" # Toto je šifrovací kľúč pre prehliadač
+    cookie_name="omnitravel_cookie",
+    key="nejaky_nahodny_string_123"
 )
 
-# Kontrola prihlásenia
 auth.check_authenticity()
 
 # --- 3. CSS DIZAJN ---
