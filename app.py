@@ -1,7 +1,5 @@
 import streamlit as st
 from streamlit_google_auth import Authenticate
-st.write("Mám ID?", "google_client_id" in st.secrets)
-st.write("Mám Secret?", "google_client_secret" in st.secrets)
 
 # --- 1. KONFIGURÁCIA ---
 st.set_page_config(
@@ -10,14 +8,16 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. INICIALIZÁCIA GOOGLE AUTH ---
+# --- 2. INICIALIZÁCIA GOOGLE AUTH (Presná verzia pre tvoju knižnicu) ---
 auth = Authenticate(
-    secret_key=st.secrets["google_client_secret"],
     client_id=st.secrets["google_client_id"],
+    client_secret=st.secrets["google_client_secret"], # Tu bola chyba, musí to byť client_secret
     redirect_uri=st.secrets["redirect_uri"] + "/component/streamlit_google_oauth.google_oauth/index.html",
-    cookie_name="omnitravel_login_cookie"
+    cookie_name="omnitravel_login_cookie",
+    key="omni_secret_shhh" # Toto je šifrovací kľúč pre prehliadač
 )
 
+# Kontrola prihlásenia
 auth.check_authenticity()
 
 # --- 3. CSS DIZAJN ---
