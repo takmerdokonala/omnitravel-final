@@ -1,5 +1,7 @@
 import streamlit as st
 from streamlit_google_auth import Authenticate
+st.write("Mám ID?", "google_client_id" in st.secrets)
+st.write("Mám Secret?", "google_client_secret" in st.secrets)
 
 # --- 1. KONFIGURÁCIA ---
 st.set_page_config(
