@@ -8,17 +8,27 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. INICIALIZÁCIA GOOGLE AUTH (Verzia 2026) ---
+# --- 2. INICIALIZÁCIA GOOGLE AUTH (Verzia "Istota") ---
+# Načítame si údaje dopredu, aby sme videli, či nie sú prázdne
+cid = st.secrets.get("google_client_id")
+cs = st.secrets.get("google_client_secret")
+ruri = st.secrets.get("redirect_uri")
+
+# Ak niečo chýba, appka nám to teraz povie slušne, namiesto TypeError
+if not all([cid, cs, ruri]):
+    st.error("Chýbajú údaje v Secrets! Skontroluj google_client_id, google_client_secret a redirect_uri.")
+    st.stop()
+
+# Skúsime túto kombináciu parametrov
 auth = Authenticate(
-    client_id=st.secrets["google_client_id"],
-    client_secret=st.secrets["google_client_secret"],
-    redirect_uri=st.secrets["redirect_uri"] + "/component/streamlit_google_oauth.google_oauth/index.html",
+    client_id=cid,
+    client_secret=cs,
+    redirect_uri=ruri + "/component/streamlit_google_oauth.google_oauth/index.html",
     cookie_name="omnitravel_cookie",
-    key="nejaky_nahodny_string_123"
+    key="omni_secret_123"
 )
 
 auth.check_authenticity()
-
 # --- 3. CSS DIZAJN ---
 st.markdown("""
 <style>
